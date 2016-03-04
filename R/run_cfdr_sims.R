@@ -61,7 +61,7 @@ run_cfdr_sims <- function(type.sequence, B=10, sample.size=c(20, 20),
           td <- unlist(td)
           true.discoveries[j, td, i] <- 1
         }else{
-          td_class <- rep(0, nrow(clpois$clust))
+          td_class <- rep(0, nrow(cl$clust))
         }
         n.false.discoveries[j,i] <- sum(td_class==0)
       }else{
