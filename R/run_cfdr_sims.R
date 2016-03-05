@@ -70,5 +70,5 @@ run_cfdr_sims <- function(type.sequence, B=10, sample.size=c(20, 20),
     }
     cat("\n")
   }
-  return(list(n.false.discoveries, true.discoveries))
+  return(list("false_discoveris"=n.false.discoveries, "true_discoveries"=true.discoveries))
 }
