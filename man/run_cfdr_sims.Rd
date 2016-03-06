@@ -5,7 +5,8 @@
 \title{Run Simulations}
 \usage{
 run_cfdr_sims(type.sequence, B = 10, sample.size = c(20, 20), seed = NULL,
-  n.perms = 500, s0 = c(0.1, 0.1, 0))
+  n.perms = 500, s0 = c(0.1, 0.1, 0), save.data = FALSE,
+  type.def = NULL)
 }
 \arguments{
 \item{type.sequence}{Vector of integers in 1:6 giving the type of each subregion.}

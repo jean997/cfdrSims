@@ -28,7 +28,9 @@ huber_var <- function(x, muH, k){
 #'@return Vector of statistics length p
 #'@export
 huber_stats <- function(Y, labs, k=1.345, scale=NULL, s0=0){
-  if(is.null(scale)) scale <- apply(Y, MARGIN=1, FUN=sd)
+  if(is.null(scale)){
+    scale <- apply(Y, MARGIN=1, FUN=function(x){hubers(x, k=k)$s})
+  }
   if(length(scale)==1) scale <- rep(scale, nrow(Y))
   Yt <- cbind(scale, Y)
   B <- apply(Yt, MARGIN=1, FUN=function(y){

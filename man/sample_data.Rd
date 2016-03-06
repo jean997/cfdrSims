@@ -4,7 +4,7 @@
 \alias{sample_data}
 \title{Sample data}
 \usage{
-sample_data(type.sequence, sample.size)
+sample_data(type.sequence, sample.size, type.def = NULL)
 }
 \arguments{
 \item{type.sequence}{Vector of integers in 1:6 giving the type of each subregion.}

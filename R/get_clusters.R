@@ -22,13 +22,11 @@ get_clusters <- function(stats, pos, bw, nz, level=0.1){
   x <- ksmooth(pos, stats[,1], bandwidth=bw, x.points=pos)$y
   zmin = quantile(abs(x), probs=0.9)
   z <- seq(zmin, max(abs(x)), length.out=nz)
-  z0 = 0.3*zmin
+  z0 <- 0.3*zmin
 
-  clust_num = apply(stats, MARGIN=2, FUN=function(st){
+  clust_num <- apply(stats, MARGIN=2, FUN=function(st){
 	  xs =  ksmooth(pos, st, bandwidth=bw, x.points=pos)$y
-    unlist(lapply(z, FUN=function(t){
-      count_clusters_merged(x=xs, z=t, z0=z0)$nclust
-    }))
+    count_clusters_merged(x=xs, z=z, z0=z0)
 	})
   lhat <- rowMeans(clust_num[,2:N])
   fdrhat = lhat/(clust_num[,1]+1)
@@ -38,12 +36,11 @@ get_clusters <- function(stats, pos, bw, nz, level=0.1){
 	  myz = Inf
   }
   if(myz < max(z)){
-    clust <- count_clusters_merged(x=x, z=myz, z0=z0)
-    qI <- clust$clust
+    clust <- name_clusters_merged(x=x, z=myz, z0=z0)
   }else{
-    qI <- NULL
+    clust <- NULL
   }
-  R <- list("clust_num" = clust_num,  "bw"=bw, "clust"=qI,
+  R <- list("clust_num" = clust_num,  "bw"=bw, "clust"=clust,
             "z"=z, "z0"=z0, "fdr"=fdrhat,"zsel"=myz)
   return(R)
 }

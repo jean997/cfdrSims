@@ -8,11 +8,11 @@
 #' \item{\code{means}}{ Matrix of sample specific profiles.}
 #' }
 #' @export
-sample_data <- function(type.sequence, sample.size){
+sample_data <- function(type.sequence, sample.size, type.def=NULL){
   stopifnot(length(sample.size)==2)
 
   P <- define_profiles()
-  probs <- define_types()
+  if(is.null(type.def)) type.def <- define_types()
   z <- nrow(P)
   w <- length(type.sequence)
   dat <- means <- matrix(nrow=w*z, ncol=sum(sample.size))
@@ -20,7 +20,7 @@ sample_data <- function(type.sequence, sample.size){
   for(i in 1:sample.size[1]){
     idx <- 1
     for(j in 1:w){
-      p <- P[,sample(1:4, size=1, prob=probs$p1[type.sequence[j],])]
+      p <- P[,sample(1:4, size=1, prob=type.def$p1[type.sequence[j],])]
       dat[idx:(idx+z-1),i] <- rpois(n=z, lambda = p)
       means[idx:(idx+z-1), i] <- p
       idx <- idx + z
@@ -29,7 +29,7 @@ sample_data <- function(type.sequence, sample.size){
   for(i in 1:sample.size[2]){
     idx <- 1
     for(j in 1:w){
-      p <- P[,sample(1:4, size=1, prob=probs$p2[type.sequence[j],])]
+      p <- P[,sample(1:4, size=1, prob=type.def$p2[type.sequence[j],])]
       dat[idx:(idx+z-1),i+sample.size[1]] <- rpois(n=z, lambda = p)
       means[idx:(idx+z-1), i+sample.size[1]] <- p
       idx <- idx + z
