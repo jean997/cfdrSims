@@ -14,7 +14,7 @@
 #'The first column is for te original labels.
 #'The next columns are for the permutation labels
 #'@export
-get_stats_pois <- function(dat, labs, perm_labs, s0=0.1){
+get_stats_pois <- function(dat, labs, perm_labs, s0=0){
   z1 <- pois_regression(Y=dat, labs=labs, s0=s0)
   z <- apply(perm_labs, MARGIN=2, FUN=function(l){
 							 pois_regression(Y=dat,labs=l, s0=s0)
@@ -34,10 +34,9 @@ get_stats_pois <- function(dat, labs, perm_labs, s0=0.1){
 #'The next columns are for the permutation labels
 #'@export
 get_stats_huber<- function(dat, labs, perm_labs,
-                           s0=0.1, k=1.345, scale=NULL){
+                           s0=0, k=1.345, scale=NULL){
   if(is.null(scale)){
-    scale <- apply(dat, MARGIN=1, FUN=function(x){hubers(x, k=k)$s})
-    scale[scale==0] <- min(scale[scale > 0])
+    scale <- huber_scale_prop2(dat, labs, k)
   }
   z1 <- huber_stats(Y=dat, labs=labs, s0=s0, k=k, scale=scale)
   z <- apply(perm_labs, MARGIN=2, FUN=function(l){
