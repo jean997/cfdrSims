@@ -15,7 +15,8 @@
 #'@export
 run_cfdr_sims <- function(type.sequence, B=10, sample.size=c(20, 20),
                      seed=NULL, n.perms=500, s0=c(0.1, 0.1, 0),
-                     save.data=FALSE, type.def=NULL){
+                     save.data=FALSE, type.def=NULL,
+                     stat.names = c("Poisson", "Huber", "t-test")){
   if(!is.null(seed)) set.seed(seed)
   if(!is.null(type.def)) stopifnot(names(type.def) ==c("p1", "p2"))
 
@@ -47,7 +48,6 @@ run_cfdr_sims <- function(type.sequence, B=10, sample.size=c(20, 20),
     sample( labs, size=length(labs), replace=FALSE)
   })
 
-  stat.names <- c("Poisson", "Huber", "t-test")
   n.f.disc <- array(dim=c(3, r, B))
   if(q > 0) n.t.disc <- array(0, dim=c(3, q, B))
     else n.t.disc=NULL
@@ -58,13 +58,14 @@ run_cfdr_sims <- function(type.sequence, B=10, sample.size=c(20, 20),
     dat <- NULL
     stats <- NULL
   }
+  ref.names <- c("Poisson", "Huber", "t-test")
   for(i in 1:B){
     cat(i, ": ")
     D <- sample_data(type.sequence=type.sequence, sample.size=sample.size, type.def=type.def)
     if(save.data) dat[,,i] <- D$dat
     for(st in stat.names){
       cat(st, " ")
-      j <- which(stat.names==st)
+      j <- which(ref.names==st)
       if(st=="Poisson") Z <- get_stats_pois(D$dat , labs, perms, s0=s0[1])
         else if(st=="Huber") Z <- get_stats_huber(D$dat, labs, perms, s0=s0[2])
           else if(st=="t-test") Z <- get_stats_ttest(D$dat, labs, perms, s0=s0[3])
@@ -90,6 +91,7 @@ run_cfdr_sims <- function(type.sequence, B=10, sample.size=c(20, 20),
     }
     cat("\n")
   }
+  if(is.null(type.def)) type.def=define_types()
   return(list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc, "type.sequence"=type.sequence,
-              "dat"=dat, "stats"=stats))
+              "dat"=dat, "stats"=stats, "type.def"=type.def))
 }
