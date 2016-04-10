@@ -51,9 +51,10 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
     sample( labs, size=length(labs), replace=FALSE)
   })
 
-  n.f.disc <- array(dim=c(3, r, b))
-  if(q > 0) n.t.disc <- array(0, dim=c(3, q, b))
-    else n.t.disc=NULL
+  f.disc <- array(dim=c(3, r, b))
+  n.f.disc <- n.t.disc <-  array(0, dim=c(3, b))
+  if(q > 0) t.disc <- array(0, dim=c(3, q, b))
+    else t.disc=NULL
   if(save.data){
     stats <- array(dim=c(3, p, 1+n.perms))
   }else{
@@ -81,21 +82,25 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
           #1 if overlapping with signal, 0 otherwise
           td_class <- unlist(lapply(td, FUN=length))
           td <- unlist(td)
-          n.t.disc[j, td, k] <- 1
+          t.disc[j, td, k] <- 1
+          n.t.disc[j, k] <- sum(td_class > 0)
         }else{
           td_class <- rep(0, nrow(cl$clust[[k]]))
         }
         td_region <- unlist(interval_overlap(cl$clust[[k]], rI))
         f.disc.region <- rep(0, r)
         f.disc.region[td_region[td_class==0]] <- 1
-        n.f.disc[j, ,k] <- f.disc.region
+        f.disc[j, ,k] <- f.disc.region
+        n.f.disc[j, k] <- sum(td_class==0)
       }else{
-        n.f.disc[j, ,k] <- rep(0, r)
+        f.disc[j, ,k] <- rep(0, r)
       }
     }
     cat("\n")
   }
   if(is.null(type.def)) type.def=define_types()
-  return(list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc, "type.sequence"=type.sequence,
+  return(list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc,
+              "f.disc"=f.disc, "t.disc"=t.disc,
+              "type.sequence"=type.sequence, "sample.size"=sample.size,
               "dat"=D$dat, "stats"=stats, "type.def"=type.def))
 }
