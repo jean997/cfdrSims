@@ -4,7 +4,8 @@
 \alias{get_clusters}
 \title{Count clusters at several levels of z and set threshold}
 \usage{
-get_clusters(stats, pos, bw, nz, level = 0.1)
+get_clusters(stats, pos, bw, nz, level = c(0.02, 0.05, 0.1, 0.2),
+  z.min.quantile = 0.9)
 }
 \arguments{
 \item{stats}{Matrix of stats produced by one of the get_stats functions.}
@@ -22,7 +23,7 @@ A list with elements:
 \describe{
 \item{\code{clust_num}}{Matrix of cluster counts nz x (1+n.perm)}
 \item{\code{bw}}{ Bandwidth used for smoothing}
-\item{\code{clust}}{ Clusters at chosen level of z }
+\item{\code{clust}}{ Clusters at zsel }
 \item{\code{z}}{ All levels looked at}
 \item{\code{z0}}{ Reference level used for merging}
 \item{\code{fdr}}{ Estimated fdr at each level}

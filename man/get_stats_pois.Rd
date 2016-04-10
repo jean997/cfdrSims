@@ -4,7 +4,7 @@
 \alias{get_stats_pois}
 \title{Get Poisson stats}
 \usage{
-get_stats_pois(dat, labs, perm_labs, s0 = 0.1)
+get_stats_pois(dat, labs, perm_labs, s0 = 0)
 }
 \arguments{
 \item{dat}{Matrix of data (n x p)}

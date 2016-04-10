@@ -9,20 +9,23 @@
 #'@param s0 Vector of length 3 giving additional variance to add to Poisson, Huber and t-test statistics.
 #' @return A list with elements:
 #' \describe{
-#' \item{\code{n.false.discoveries}}{ Matrix 3 x B Giving total false discoveries for each method and each simulation.}
-#' \item{\code{true.discoveries}}{ Array 3 x q x B where q is the number of regions of type 4:6}
+#' \item{\code{n.f.disc}}{ Number of false disccoveries}
+#' \item{\code{n.t.disc}}{ Array 3 x q x B where q is the number of regions of type 4:6}
 #' }
 #'@export
-run_cfdr_sims <- function(type.sequence, B=10, sample.size=c(20, 20),
+run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
                      seed=NULL, n.perms=500, s0=c(0.1, 0.1, 0),
+                     level=c(0.02, 0.05, 0.1, 0.2),
                      save.data=FALSE, type.def=NULL,
                      stat.names = c("Poisson", "Huber", "t-test")){
+
   if(!is.null(seed)) set.seed(seed)
   if(!is.null(type.def)) stopifnot(names(type.def) ==c("p1", "p2"))
 
   r <- length(type.sequence)
   q <- sum(type.sequence %in% 4:6)
   p <- 200 * length(type.sequence)
+  b <- length(level)
   cat(q, " regions with signal,", r-q, " regions without.\n")
   #Build signal intervals object
   if(q > 0){
@@ -48,50 +51,51 @@ run_cfdr_sims <- function(type.sequence, B=10, sample.size=c(20, 20),
     sample( labs, size=length(labs), replace=FALSE)
   })
 
-  n.f.disc <- array(dim=c(3, r, B))
-  if(q > 0) n.t.disc <- array(0, dim=c(3, q, B))
+  n.f.disc <- array(dim=c(3, r, b))
+  if(q > 0) n.t.disc <- array(0, dim=c(3, q, b))
     else n.t.disc=NULL
   if(save.data){
-    dat <- array(dim=c(p, sum(sample.size), B))
-    stats <- array(dim=c(3, p, 1+n.perms, B))
+    stats <- array(dim=c(3, p, 1+n.perms))
   }else{
     dat <- NULL
     stats <- NULL
   }
   ref.names <- c("Poisson", "Huber", "t-test")
-  for(i in 1:B){
-    cat(i, ": ")
-    D <- sample_data(type.sequence=type.sequence, sample.size=sample.size, type.def=type.def)
-    if(save.data) dat[,,i] <- D$dat
-    for(st in stat.names){
-      cat(st, " ")
-      j <- which(ref.names==st)
-      if(st=="Poisson") Z <- get_stats_pois(D$dat , labs, perms, s0=s0[1])
-        else if(st=="Huber") Z <- get_stats_huber(D$dat, labs, perms, s0=s0[2])
-          else if(st=="t-test") Z <- get_stats_ttest(D$dat, labs, perms, s0=s0[3])
-      cl <- get_clusters(Z, 1:p, bw=20, nz=20)
-      if(save.data) stats[j, , , i] <- Z
-      if(cl$zsel < max(cl$z)){
+
+
+  D <- sample_data(type.sequence=type.sequence, sample.size=sample.size, type.def=type.def)
+
+  for(st in stat.names){
+    cat(st, " ")
+    j <- which(ref.names==st)
+    if(st=="Poisson") Z <- get_stats_pois(D$dat , labs, perms, s0=s0[1])
+      else if(st=="Huber") Z <- get_stats_huber(D$dat, labs, perms, s0=s0[2])
+        else if(st=="t-test") Z <- get_stats_ttest(D$dat, labs, perms, s0=s0[3])
+
+    cl <- get_clusters(Z, 1:p, bw=20, nz=20, level=level)
+    if(save.data) stats[j, , ] <- Z
+    for(k in 1:b){
+      if(cl$zsel[k] < max(cl$z)){
         if(q > 0){
-          td <- interval_overlap(cl$clust, signal)
+          td <- interval_overlap(cl$clust[[k]], signal)
           #1 if overlapping with signal, 0 otherwise
           td_class <- unlist(lapply(td, FUN=length))
           td <- unlist(td)
-          n.t.disc[j, td, i] <- 1
+          n.t.disc[j, td, k] <- 1
         }else{
-          td_class <- rep(0, nrow(cl$clust))
+          td_class <- rep(0, nrow(cl$clust[[k]]))
         }
-        td_region <- unlist(interval_overlap(cl$clust, rI))
+        td_region <- unlist(interval_overlap(cl$clust[[k]], rI))
         f.disc.region <- rep(0, r)
         f.disc.region[td_region[td_class==0]] <- 1
-        n.f.disc[j, ,i] <- f.disc.region
+        n.f.disc[j, ,k] <- f.disc.region
       }else{
-        n.f.disc[j, ,i] <- rep(0, r)
+        n.f.disc[j, ,k] <- rep(0, r)
       }
     }
     cat("\n")
   }
   if(is.null(type.def)) type.def=define_types()
   return(list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc, "type.sequence"=type.sequence,
-              "dat"=dat, "stats"=stats, "type.def"=type.def))
+              "dat"=D$dat, "stats"=stats, "type.def"=type.def))
 }

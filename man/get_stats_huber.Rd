@@ -4,7 +4,7 @@
 \alias{get_stats_huber}
 \title{Get Huber stats}
 \usage{
-get_stats_huber(dat, labs, perm_labs, s0 = 0.1, k = 1.345, scale = NULL)
+get_stats_huber(dat, labs, perm_labs, s0 = 0, k = 1.345, scale = NULL)
 }
 \arguments{
 \item{dat}{Matrix of data (n x p)}
