@@ -29,13 +29,14 @@ get_clusters <- function(stats, pos, bw, nz,
 	  xs =  ksmooth(pos, st, bandwidth=bw, x.points=pos)$y
     count_clusters_merged(x=xs, z=z, z0=z0)
 	})
+  R <- clust_num[,1]
   lhat <- rowMeans(clust_num[,2:N])
-  fdrhat = lhat/(clust_num[,1]+1)
+  fdrhat = lhat/(R+1)
   clust <- list()
   zsel <- rep(NA, length(level))
   for(j in 1:length(level)){
-    if(any(fdrhat < level[j])){
-	    zsel[j] = min(z[fdrhat < level[j]])
+    if(any(R > lhat/level[j])){
+	    zsel[j] = min(z[R > lhat/level[j]])
     }else{
 	    zsel[j] = Inf
     }
