@@ -18,7 +18,8 @@
 #' }
 #'@export
 get_clusters <- function(stats, pos, bw, nz,
-                         level=c(0.02, 0.05, 0.1, 0.2), z.min.quantile=0.9){
+                         level=c(0.02, 0.05, 0.1, 0.2),
+                         z.min.quantile=0.9, seg.ends=NULL){
   N <- ncol(stats)
   x <- ksmooth(pos, stats[,1], bandwidth=bw, x.points=pos)$y
   zmin = quantile(abs(x), probs=z.min.quantile)
@@ -27,26 +28,33 @@ get_clusters <- function(stats, pos, bw, nz,
 
   clust_num <- apply(stats, MARGIN=2, FUN=function(st){
 	  xs =  ksmooth(pos, st, bandwidth=bw, x.points=pos)$y
-    count_clusters_merged(x=xs, z=z, z0=z0)
+    count_clusters_merged(x=xs, z=z, z0=z0, seg.ends=seg.ends)
 	})
-  R <- clust_num[,1]
-  lhat <- rowMeans(clust_num[,2:N])
-  fdrhat = lhat/(R+1)
   clust <- list()
-  zsel <- rep(NA, length(level))
+  if(is.null(seg.ends)) seg.ends <- c(nrow(stats))
+  nseg <- length(seg.ends)
+  C <- array(dim=c(nz, nseg, N))
+  for(i in 1:N) C[, , i] <- matrix(clust_num[, i], nrow=nz, byrow=FALSE)
+  R <- C[, , 1]
+  if(nseg==1) R <- matrix(R, nrow=nz, ncol=1)
+  lhat <- apply(C[, , 2:N, drop=FALSE], MARGIN=c(1, 2), FUN=mean )
+  zsel <- matrix(nrow=nrow(stats), ncol=length(level))
   for(j in 1:length(level)){
-    if(any(R > lhat/level[j])){
-	    zsel[j] = min(z[R > lhat/level[j]])
-    }else{
-	    zsel[j] = Inf
+    idx <- choose_z(lhat, R, level[j])
+    strt <- 1
+    for(i in 1:nseg){
+      zsel[strt:seg.ends[i], j] <- z[idx[i, 1]]
+      strt <- seg.ends[i] + 1
     }
-    if(zsel[j] < max(z)){
-      clust[[j]] <- name_clusters_merged(x=x, z=zsel[j], z0=z0)
+    if(any(is.finite(zsel[,j]))){
+      clust[[j]] <- name_clusters_merged(x=x, z=zsel[,j], z0=z0)
     }else{
       clust[[j]] <- NULL
     }
+
   }
   R <- list("clust_num" = clust_num,  "bw"=bw, "clust"=clust,
-            "z"=z, "z0"=z0, "fdr"=fdrhat,"zsel"=zsel)
+            "z"=z, "z0"=z0, "lhat"=lhat,"R"=R, "zsel"=zsel)
   return(R)
 }
+

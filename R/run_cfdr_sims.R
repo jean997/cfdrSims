@@ -100,7 +100,7 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
   }
   if(is.null(type.def)) type.def=define_types()
   return(list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc,
-              "f.disc"=f.disc, "t.disc"=t.disc,
+              "f.disc"=f.disc, "t.disc"=t.disc, "stat.names"=stat.names,
               "type.sequence"=type.sequence, "sample.size"=sample.size,
               "dat"=D$dat, "stats"=stats, "type.def"=type.def))
 }
