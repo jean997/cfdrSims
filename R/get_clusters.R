@@ -47,11 +47,8 @@ get_clusters <- function(stats, pos, bw, nz,
         else zsel[strt:seg.ends[i], j] <- z[idx[i, 1]]
       strt <- seg.ends[i] + 1
     }
-    if(any(is.finite(zsel[,j]))){
-      clust[[j]] <- name_clusters_merged(x=x, z=zsel[,j], z0=z0)
-    }else{
-      clust[[j]] <- NULL
-    }
+
+    clust[[j]] <- name_clusters_merged(x=x, z=zsel[,j], z0=z0)
 
   }
   R <- list("clust_num" = clust_num,  "bw"=bw, "clust"=clust, "x"=x,
