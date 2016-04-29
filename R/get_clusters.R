@@ -54,7 +54,7 @@ get_clusters <- function(stats, pos, bw, nz,
     }
 
   }
-  R <- list("clust_num" = clust_num,  "bw"=bw, "clust"=clust,
+  R <- list("clust_num" = clust_num,  "bw"=bw, "clust"=clust, "x"=x,
             "z"=z, "z0"=z0, "lhat"=lhat,"R"=R, "zsel"=zsel)
   return(R)
 }
