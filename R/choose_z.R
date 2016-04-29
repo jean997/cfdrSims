@@ -13,6 +13,7 @@ choose_z <- function(lhat, R, level){
     if(all(f > level)) return(idx)
   }else{
     f <- l/r
+    f[l==0 & r==0] <- Inf
     m <- max(r[f <= level])
     ix <- which(r==m & f <= level)
     idx <- cbind(rep(min(ix), nseg), 1:nseg)
@@ -31,8 +32,9 @@ choose_z <- function(lhat, R, level){
     ff[ll==0 & rr==0] <- Inf
     if(all(ff > level) & idx[j, 1]==Inf){
       changed[j] <- 0
+    }else if(sum(ff <= level)==0){ #This only happens for numerical reasons
+      changed[j] <- 0
     }else{
-      if(sum(ff <= level)==0) cat(j, "!!!\n")
       m <- max(rr[ff <= level])
       ix <- which(rr==m & ff <= level)
       if(min(ix)==idx[j, 1])changed[j] <- 0
