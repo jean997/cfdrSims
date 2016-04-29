@@ -43,7 +43,8 @@ choose_z <- function(lhat, R, level){
     if(j==0) j <- nseg
   }
   inf_ix <- which(!is.finite(idx[,1]))
-  r <- sum(R[idx[-c(inf_ix),, drop=FALSE] ])
+  if(lenth(inf_ix)==0) r <- sum(R[idx])
+    else r <- sum(R[idx[-c(inf_ix),, drop=FALSE] ])
   if(r == 0) idx[,1] <- Inf
   return(idx)
 
