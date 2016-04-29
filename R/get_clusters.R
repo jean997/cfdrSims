@@ -43,7 +43,8 @@ get_clusters <- function(stats, pos, bw, nz,
     idx <- choose_z(lhat, R, level[j])
     strt <- 1
     for(i in 1:nseg){
-      zsel[strt:seg.ends[i], j] <- z[idx[i, 1]]
+      if(!is.finite(idx[i, 1])) zsel[strt:seg.ends[i], j] <- Inf
+        else zsel[strt:seg.ends[i], j] <- z[idx[i, 1]]
       strt <- seg.ends[i] + 1
     }
     if(any(is.finite(zsel[,j]))){
