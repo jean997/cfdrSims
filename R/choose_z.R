@@ -32,8 +32,8 @@ choose_z <- function(lhat, R, level){
   while(any(changed > 0)){
     cat(j, "..")
     inf_ix <- which(!is.finite(idx[,1]))
-    l  <- sum(lhat[idx[-c(inf_ix, j),]])
-    r <- sum(R[idx[-c(inf_ix, j),]])
+    l  <- sum(lhat[idx[-c(inf_ix, j),, drop=FALSE]])
+    r <- sum(R[idx[-c(inf_ix, j),, drop=FALSE]])
     ll <- l + lhat[,j]
     rr <- r + R[,j]
     ff <- ll/rr
