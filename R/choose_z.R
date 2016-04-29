@@ -31,16 +31,21 @@ choose_z <- function(lhat, R, level){
   j <- 1
   while(any(changed > 0)){
     cat(j, "..")
-    l  <- sum(lhat[idx[-j,]])
-    r <- sum(R[idx[-j,]])
+    inf_ix <- which(!is.finite(idx[,1]))
+    l  <- sum(lhat[idx[-c(inf_ix, j),]])
+    r <- sum(R[idx[-c(inf_ix, j),]])
     ll <- l + lhat[,j]
     rr <- r + R[,j]
     ff <- ll/rr
-    m <- max(rr[ff < level])
-    ix <- which(rr==m & ff < level)
-    if(min(ix)==idx[j, 1])changed[j] <- 0
-      else changed[j] <- 1
-    idx[j, 1] <- min(ix)
+    if(all(ff > level) & idx[j, 1]==Inf){
+      changed[j] <- 0
+    }else{
+      m <- max(rr[ff < level])
+      ix <- which(rr==m & ff < level)
+      if(min(ix)==idx[j, 1])changed[j] <- 0
+        else changed[j] <- 1
+      idx[j, 1] <- min(ix)
+    }
     j <- (j+1) %% nseg
     if(j==0) j <- nseg
   }
