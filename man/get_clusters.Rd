@@ -5,7 +5,7 @@
 \title{Count clusters at several levels of z and set threshold}
 \usage{
 get_clusters(stats, pos, bw, nz, level = c(0.02, 0.05, 0.1, 0.2),
-  z.min.quantile = 0.9)
+  z.min.quantile = 0.9, seg.ends = NULL)
 }
 \arguments{
 \item{stats}{Matrix of stats produced by one of the get_stats functions.}

@@ -47,7 +47,7 @@ name_clusters_merged <- function(x, z, z0, labs=FALSE){
 #'z that are subsets of a single region at level z0 will be merged.
 #'@return A vector the length of z giving the number of clusters at each level
 #'@export
-count_clusters_merged <- function(x, z, z0, seg.ends=NULL){
+count_clusters_merged <- function(x, z, z0){
   if(is.null(seg.ends)){
     seg.ends <- c(length(x))
   }
