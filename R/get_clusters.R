@@ -26,7 +26,7 @@ get_clusters <- function(stats, pos, bw, nz, signal=NULL,
   z <- seq(zmin, max(abs(x)), length.out=nz)
   z0 <- 0.3*zmin
 
-  R <- count_clusters_merged(x=xs, z=z, z0=z0, seg.ends=seg.ends)
+  R <- count_clusters_merged(x=x, z=z, z0=z0, seg.ends=seg.ends)
   clust_num <- apply(stats[, 2:N], MARGIN=2, FUN=function(st){
 	  xs =  ksmooth(pos, st, bandwidth=bw, x.points=pos)$y
     count_clusters_merged(x=xs, z=z, z0=z0, seg.ends=seg.ends, except=signal)
