@@ -44,26 +44,33 @@ name_clusters_merged <- function(x, z, z0, labs=FALSE){
 #'@param x Data (already smoothed)
 #'@param z Threshold
 #'@param z0 threshold for merging - separate regions at level
+#'@param except Intervals object of area to remove
 #'z that are subsets of a single region at level z0 will be merged.
 #'@return A vector the length of z giving the number of clusters at each level
 #'@export
-count_clusters_merged <- function(x, z, z0){
+count_clusters_merged <- function(x, z, z0, seg.ends=NULL, except=NULL){
   if(is.null(seg.ends)){
     seg.ends <- c(length(x))
   }
   nseg <- length(seg.ends)
+  segs <- Intervals(cbind(c(1, seg.ends[-nseg] +1), seg.ends))
+
   clust_num <- matrix(nrow=length(z), ncol=nseg)
-  strt <- 1
+  q0 <-rle( abs(x) > z0 )
+  p0 <- length(q0$lengths)
+
+  starts0 <- c(1, cumsum(q0$lengths)[-p0]+1)[q0$values]
+  stops0 <- (cumsum(q0$lengths))[q0$values]
+  q0I <- Intervals(cbind(starts0, stops0))
+
+  byseg <- interval_overlap(segs, q0I)
   for(i in 1:nseg){
-    mx <- x[strt:seg.ends[i]]
-    q0 <-rle( abs(mx) > z0 )
-    p0 <- length(q0$lengths)
-    starts0 <- c(1, cumsum(q0$lengths)[-p0]+1)[q0$values]
-    stops0 <- (cumsum(q0$lengths))[q0$values]
-    q0M <- cbind(starts0, stops0)
-    m <- apply(q0M, MARGIN=1, FUN=function(s){ max(abs(mx)[s[1]:s[2]])})
+    m <- apply(q0I[byseg[[i]], ], MARGIN=1, FUN=function(s){ max(abs(x)[s[1]:s[2]])})
+    if(!is.null(except)){
+      ix <- unlist(interval_overlap(except, q0I[byseg[[i]],]))
+      m[ix] <- 0
+    }
     clust_num[,i] <- sapply(z, FUN=function(t){sum(m > t)})
-    strt <- seg.ends[i] + 1
   }
   return(clust_num)
 }

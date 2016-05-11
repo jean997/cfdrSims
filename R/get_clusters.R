@@ -17,7 +17,7 @@
 #' \item{\code{zsel}}{ Selected level of z}
 #' }
 #'@export
-get_clusters <- function(stats, pos, bw, nz,
+get_clusters <- function(stats, pos, bw, nz, signal=NULL,
                          level=c(0.02, 0.05, 0.1, 0.2),
                          z.min.quantile=0.9, seg.ends=NULL){
   N <- ncol(stats)
@@ -26,21 +26,23 @@ get_clusters <- function(stats, pos, bw, nz,
   z <- seq(zmin, max(abs(x)), length.out=nz)
   z0 <- 0.3*zmin
 
-  clust_num <- apply(stats, MARGIN=2, FUN=function(st){
+  R <- count_clusters_merged(x=xs, z=z, z0=z0, seg.ends=seg.ends)
+  clust_num <- apply(stats[, 2:N], MARGIN=2, FUN=function(st){
 	  xs =  ksmooth(pos, st, bandwidth=bw, x.points=pos)$y
-    count_clusters_merged(x=xs, z=z, z0=z0, seg.ends=seg.ends)
+    count_clusters_merged(x=xs, z=z, z0=z0, seg.ends=seg.ends, except=signal)
 	})
   clust <- list()
   if(is.null(seg.ends)) seg.ends <- c(nrow(stats))
   nseg <- length(seg.ends)
   C <- array(dim=c(nz, nseg, N))
-  for(i in 1:N) C[, , i] <- matrix(clust_num[, i], nrow=nz, byrow=FALSE)
-  R <- C[, , 1]
+  C[, , 1] <- R
+  for(i in 2:N) C[, , i] <- matrix(clust_num[, i-1], nrow=nz, byrow=FALSE)
+
   if(nseg==1) R <- matrix(R, nrow=nz, ncol=1)
   lhat <- apply(C[, , 2:N, drop=FALSE], MARGIN=c(1, 2), FUN=mean )
   zsel <- matrix(nrow=nrow(stats), ncol=length(level))
   for(j in 1:length(level)){
-    idx <- choose_z(lhat, R, level[j])
+    idx <- cfdrSims:::choose_z(lhat, R, level[j])
     strt <- 1
     for(i in 1:nseg){
       if(!is.finite(idx[i, 1])) zsel[strt:seg.ends[i], j] <- Inf
@@ -51,7 +53,7 @@ get_clusters <- function(stats, pos, bw, nz,
     clust[[j]] <- name_clusters_merged(x=x, z=zsel[,j], z0=z0)
 
   }
-  R <- list("clust_num" = clust_num,  "bw"=bw, "clust"=clust, "x"=x,
+  R <- list("clust_num" = C,  "bw"=bw, "clust"=clust, "x"=x,
             "z"=z, "z0"=z0, "lhat"=lhat,"R"=R, "zsel"=zsel)
   return(R)
 }
