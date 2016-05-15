@@ -1,4 +1,50 @@
 
+choose_z_even <- function(perm.stats, nlam, bw, pos, z0,
+                          lambda.max=NULL, seg.ends=NULL, except=NULL){
+  if(is.null(seg.ends)){
+    seg.ends <- c(length(x))
+  }
+  nseg <- length(seg.ends)
+  nperm <- ncol(perm.stats)
+  perm.smooth <- apply(perm.stats, MARGIN=2, FUN=function(x){
+    ksmooth(pos, x, bandwidth=bw, x.points=pos)$y
+  })
+  if(!is.null(except)){
+    for(j in 1:nrow(except)) {
+      s <- except[j, 1]; p <- except[j, 2]
+      perm.smooth[s:p, ] <- 0
+    }
+  }
+
+  mx <- list()
+  max.lam <- Inf; min.lam <- -Inf; strt <- 1
+  for(i in 1:nseg){
+    cat(i, " ")
+    maxes <- apply(perm.smooth[strt:seg.ends[i],], MARGIN=2, FUN=function(xs){
+      q0 <-rle( abs(xs) > z0 )
+      p0 <- length(q0$lengths)
+      starts0 <- c(1, cumsum(q0$lengths)[-p0]+1)[q0$values]
+      stops0 <- (cumsum(q0$lengths))[q0$values]
+      sapply(1:length(starts0), FUN=function(j){ max(abs(xs)[starts0[j]:stops0[j]])})
+    })
+    m <- sort(unlist(maxes), decreasing=TRUE)
+    mx[[i]] <- cbind(m, (1:length(m))/(nperm*(seg.ends[i]-strt + 1)))
+    max.lam <- min(max.lam, max(log10(mx[[i]][,2])))
+    min.lam <- max(min.lam, min(log10(mx[[i]][,2])))
+    strt <- seg.ends[i] + 1
+  }
+  cat("\n")
+  if(!is.null(lambda.max)) max.lam <- log10(lambda.max)
+
+  lams <- seq(min.lam, max.lam, length.out=nlam)
+  z <- sapply(mx, FUN=function(m){
+   approx(y=m[,1], x=log10(m[,2]), xout=lams)$y
+  })
+  z <- data.frame(cbind(lams, z))
+  names(z) <- c("lambda", paste0("z", 1:nseg))
+  return(z)
+}
+
 
 
 choose_z <- function(lhat, R, level){
