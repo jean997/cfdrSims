@@ -17,44 +17,38 @@
 #' \item{\code{zsel}}{ Selected level of z}
 #' }
 #'@export
-get_clusters <- function(stats, pos, bw, nz, signal=NULL,
-                         level=c(0.02, 0.05, 0.1, 0.2),
+get_clusters <- function(stats, pos, bw, nlam, lambda.max=NULL,
+                         signal=NULL, level=c(0.02, 0.05, 0.1, 0.2),
                          z.min.quantile=0.9, seg.ends=NULL){
   N <- ncol(stats)
   x <- ksmooth(pos, stats[,1], bandwidth=bw, x.points=pos)$y
   zmin = quantile(abs(x), probs=z.min.quantile)
-  z <- seq(zmin, max(abs(x)), length.out=nz)
   z0 <- 0.3*zmin
+  p <- dim(stats)[1]
+  if(is.null(seg.ends)) seg.ends <- c(p)
+  nseg <- length(seg.ends)
+  d <- c(seg.ends[1], diff(seg.ends))
+
+  z <- choose_z_even(stats[, 2:N], nlam, bw, pos, z0, lambda.max, seg.ends, except=signal)
 
   R <- count_clusters_merged(x=x, z=z, z0=z0, seg.ends=seg.ends)
-  clust_num <- apply(stats[, 2:N], MARGIN=2, FUN=function(st){
-	  xs =  ksmooth(pos, st, bandwidth=bw, x.points=pos)$y
-    count_clusters_merged(x=xs, z=z, z0=z0, seg.ends=seg.ends, except=signal)
-	})
+
+  fdr <- (10^(R[,1]))*p/rowSums(R[, 2:(nseg + 1), drop=FALSE])
+
   clust <- list()
-  if(is.null(seg.ends)) seg.ends <- c(nrow(stats))
-  nseg <- length(seg.ends)
-  C <- array(dim=c(nz, nseg, N))
-  C[, , 1] <- R
-  for(i in 2:N) C[, , i] <- matrix(clust_num[, i-1], nrow=nz, byrow=FALSE)
-
-  if(nseg==1) R <- matrix(R, nrow=nz, ncol=1)
-  lhat <- apply(C[, , 2:N, drop=FALSE], MARGIN=c(1, 2), FUN=mean )
-  zsel <- matrix(nrow=nrow(stats), ncol=length(level))
+  zsel <- matrix(ncol=nseg+1, nrow=length(level))
   for(j in 1:length(level)){
-    idx <- cfdrSims:::choose_z(lhat, R, level[j])
-    strt <- 1
-    for(i in 1:nseg){
-      if(!is.finite(idx[i, 1])) zsel[strt:seg.ends[i], j] <- Inf
-        else zsel[strt:seg.ends[i], j] <- z[idx[i, 1]]
-      strt <- seg.ends[i] + 1
+    if(any(fdr <= level[j])){
+      l <- max(R[,1][fdr <= level[j]])
+      ix <- which(R[,1]==l)
+      zsel[j, ] <- as.numeric(z[ix,])
+      clust[[j]] <- name_clusters_merged(x=x, z=rep(zsel[j,][-1], d), z0=z0)
+    }else{
+      clust[[j]] <-Intervals()
     }
-
-    clust[[j]] <- name_clusters_merged(x=x, z=zsel[,j], z0=z0)
-
   }
-  R <- list("clust_num" = C,  "bw"=bw, "clust"=clust, "x"=x,
-            "z"=z, "z0"=z0, "lhat"=lhat,"R"=R, "zsel"=zsel)
+  R <- list("R" = R,  "bw"=bw, "clust"=clust, "x"=x,
+            "z"=z, "z0"=z0, "zsel"=zsel)
   return(R)
 }
 
