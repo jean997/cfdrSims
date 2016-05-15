@@ -16,7 +16,7 @@ name_clusters_merged <- function(x, z, z0, labs=FALSE){
   stops0 <- (cumsum(q0$lengths))[q0$values]
   q0I <- Intervals(cbind(starts0, stops0))
 
-  #stopifnot(length(z)==1)
+  stopifnot(length(z)==1 | length(z)== length(x))
   #if(!length(z)==1) cat("Warning: z is not constant.\n")
 
   q <-rle( abs(x) > z )
@@ -42,7 +42,7 @@ name_clusters_merged <- function(x, z, z0, labs=FALSE){
 #'@title Count clusters
 #'@description Count clusters  given a threshold and level for merging
 #'@param x Data (already smoothed)
-#'@param z Threshold
+#'@param z Threshold: data frame k by nseg + 1
 #'@param z0 threshold for merging - separate regions at level
 #'@param except Intervals object of area to remove
 #'z that are subsets of a single region at level z0 will be merged.
@@ -53,25 +53,31 @@ count_clusters_merged <- function(x, z, z0, seg.ends=NULL, except=NULL){
     seg.ends <- c(length(x))
   }
   nseg <- length(seg.ends)
-  segs <- Intervals(cbind(c(1, seg.ends[-nseg] +1), seg.ends))
 
-  clust_num <- matrix(nrow=length(z), ncol=nseg)
-  q0 <-rle( abs(x) > z0 )
-  p0 <- length(q0$lengths)
+  stopifnot(class(z)=="data.frame")
+  stopifnot(dim(z)[2]==nseg + 1)
+  k <- dim(z)[1]
+  clust_num <- matrix(nrow=k, ncol=nseg)
 
-  starts0 <- c(1, cumsum(q0$lengths)[-p0]+1)[q0$values]
-  stops0 <- (cumsum(q0$lengths))[q0$values]
-  q0I <- Intervals(cbind(starts0, stops0))
-
-  byseg <- interval_overlap(segs, q0I)
-  for(i in 1:nseg){
-    m <- apply(q0I[byseg[[i]], ], MARGIN=1, FUN=function(s){ max(abs(x)[s[1]:s[2]])})
-    if(!is.null(except)){
-      ix <- unlist(interval_overlap(except, q0I[byseg[[i]],]))
-      m[ix] <- 0
+  if(!is.null(except)){
+    for(j in 1:nrow(except)) {
+      s <- except[j, 1]; p <- except[j, 2]
+      x[s:p] <- 0
     }
-    clust_num[,i] <- sapply(z, FUN=function(t){sum(m > t)})
   }
+  strt <- 1
+  for(i in 1:nseg){
+    xs <- x[strt:seg.ends[i]]
+    q0 <-rle( abs(xs) > z0 )
+    p0 <- length(q0$lengths)
+    starts0 <- c(1, cumsum(q0$lengths)[-p0]+1)[q0$values]
+    stops0 <- (cumsum(q0$lengths))[q0$values]
+    m <- sapply(1:length(starts0), FUN=function(j){ max(abs(xs)[starts0[j]:stops0[j]])})
+    clust_num[,i] <- sapply(z[, i+1], FUN=function(t){sum(m > t)})
+    strt <- seg.ends[i] + 1
+  }
+  clust_num <- data.frame(cbind(z[,1], clust_num))
+  names(clust_num) <- c("lambda", paste0("r", 1:nseg))
   return(clust_num)
 }
 
