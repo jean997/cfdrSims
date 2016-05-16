@@ -73,10 +73,10 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
       else if(st=="Huber") Z <- get_stats_huber(D$dat, labs, perms, s0=s0[2])
         else if(st=="t-test") Z <- get_stats_ttest(D$dat, labs, perms, s0=s0[3])
 
-    cl <- get_clusters(Z, 1:p, bw=20, nz=20, level=level)
+    cl <- get_clusters(Z, 1:p, bw=20, nlam=50, level=level)
     if(save.data) stats[j, , ] <- Z
     for(k in 1:b){
-      if(cl$zsel[k] < max(cl$z)){
+      if(nrow(cl$clust[[k]])> 0){
         if(q > 0){
           td <- interval_overlap(cl$clust[[k]], signal)
           #1 if overlapping with signal, 0 otherwise
