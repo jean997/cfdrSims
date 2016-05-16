@@ -14,7 +14,7 @@ make_plot <- function(summ.files, out.name, lty.legend, ltys=c(2, 1), ymax=NULL,
   p = length(summ.files)
 
   stopifnot(length(ltys) == p)
-  stopfinot(length(lty.legend)==p)
+  stopifnot(length(lty.legend)==p)
   cols=c("seagreen", "violetRed", "black")
 
   png(out.name, width=1000, height=500)
