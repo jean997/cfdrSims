@@ -4,8 +4,8 @@
 \alias{get_clusters}
 \title{Count clusters at several levels of z and set threshold}
 \usage{
-get_clusters(stats, pos, bw, nz, level = c(0.02, 0.05, 0.1, 0.2),
-  z.min.quantile = 0.9, seg.ends = NULL)
+get_clusters(stats, pos, bw, nlam, lambda.max = NULL, signal = NULL,
+  level = c(0.02, 0.05, 0.1, 0.2), z.min.quantile = 0.9, seg.ends = NULL)
 }
 \arguments{
 \item{stats}{Matrix of stats produced by one of the get_stats functions.}
@@ -14,9 +14,9 @@ get_clusters(stats, pos, bw, nz, level = c(0.02, 0.05, 0.1, 0.2),
 
 \item{bw}{bandwidth to use for smoothing}
 
-\item{nz}{Number of theresholds to look at}
-
 \item{level}{Threshold at which to control FDR.}
+
+\item{nz}{Number of theresholds to look at}
 }
 \value{
 A list with elements:

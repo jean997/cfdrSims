@@ -4,14 +4,16 @@
 \alias{count_clusters_merged}
 \title{Count clusters}
 \usage{
-count_clusters_merged(x, z, z0)
+count_clusters_merged(x, z, z0, seg.ends = NULL, except = NULL)
 }
 \arguments{
 \item{x}{Data (already smoothed)}
 
-\item{z}{Threshold}
+\item{z}{Threshold: data frame k by nseg + 1}
 
-\item{z0}{threshold for merging - separate regions at level
+\item{z0}{threshold for merging - separate regions at level}
+
+\item{except}{Intervals object of area to remove
 z that are subsets of a single region at level z0 will be merged.}
 }
 \value{

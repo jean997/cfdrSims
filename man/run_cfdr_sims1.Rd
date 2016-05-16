@@ -5,7 +5,7 @@
 \title{Run Simulations}
 \usage{
 run_cfdr_sims1(type.sequence, sample.size = c(20, 20), seed = NULL,
-  n.perms = 500, s0 = c(0.1, 0.1, 0), level = c(0.02, 0.05, 0.1, 0.2),
+  n.perms = 500, s0 = c(0, 0, 0), level = c(0.02, 0.05, 0.1, 0.2),
   save.data = FALSE, type.def = NULL, stat.names = c("Poisson", "Huber",
   "t-test"))
 }
