@@ -1,11 +1,20 @@
 
-
-make_plot <- function(summ.files, out.name, lty.legend, ltys=c(2, 1), ymax=NULL){
+#' Plot Simulations
+#'@description Plot simulations
+#'@param summ.files List of summary files (see collect.R)
+#'@param out.name Output file name
+#'@param lty.legend Legend labels for line type
+#'@param ltys Line type for each summary file
+#'@param ymax Optional max height of FDR y axis
+#'@param levels Levels in summ.files
+#' @return nothing
+#'@export
+make_plot <- function(summ.files, out.name, lty.legend, ltys=c(2, 1), ymax=NULL, levels=c(0.02, 0.05, 0.1, 0.2)){
 
   p = length(summ.files)
 
   stopifnot(length(ltys) == p)
-
+  stopfinot(length(lty.legend)==p)
   cols=c("seagreen", "violetRed", "black")
 
   png(out.name, width=1000, height=500)
@@ -19,32 +28,33 @@ make_plot <- function(summ.files, out.name, lty.legend, ltys=c(2, 1), ymax=NULL)
     }
   }
   plot(0, 0, yaxt="n", xaxt="n", type="n", xlab="Target FDR",
-           ylab="Average False Discovery Proportion", xlim=c(0, 0.2),
+           ylab="Average False Discovery Proportion", xlim=c(0, max(levels)),
            ylim=c(0, ymax))
-  axis(side = 1, at=c(0.02, 0.05, 0.1, 0.2))
-  axis(side = 2, at=c(0.02, 0.05, 0.1, 0.2))
+  axis(side = 1, at=levels)
+  axis(side = 2, at=levels)
   abline(0, 1, lty=2)
 
   for(j in 1:p){
     Z <- getobj(summ.files[j])
+    stopifnot(dim(Z$fdp)[2]==length(levels))
     fdp <- apply(Z$fdp, MARGIN=c(1, 2), FUN=mean)
     for(i in 1:3){
-      lines(c(0.02, 0.05, 0.1, 0.2), fdp[i,], lty=ltys[j],
+      lines(levels, fdp[i,], lty=ltys[j],
             col=cols[i], pch=i, type="b", lwd=3)
     }
   }
 
   plot(0, 0, yaxt="n", xaxt="n", type="n", xlab="Target FDR",
-       ylab="Average True Positive Rate", xlim=c(0, 0.2),
+       ylab="Average True Positive Rate", xlim=c(0, max(levels)),
        ylim=c(0,1))
-  axis(side = 1, at=c(0.02, 0.05, 0.1, 0.2))
+  axis(side = 1, at=levels)
   axis(side = 2, at=c(0, 0.2, 0.4, 0.6, 0.8, 1))
 
   for(j in 1:p){
     Z <- getobj(summ.files[j])
     tpr <- apply(Z$tpr, MARGIN=c(1, 2), FUN=mean)
     for(i in 1:3){
-      lines(c(0.02, 0.05, 0.1, 0.2), tpr[i,], lty=ltys[j],
+      lines(levels, tpr[i,], lty=ltys[j],
             col=cols[i], pch=i, type="b", lwd=3)
     }
 
