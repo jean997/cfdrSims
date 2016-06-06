@@ -47,7 +47,7 @@ get_stats_huber<- function(dat, labs, perm_labs,
 }
 
 
-get_stats_huber2<- function(dat, labs, perm_labs, s0=0.1){
+get_stats_huber2<- function(dat, labs, perm_labs, s0=0){
   z1 <- huber_stats2(Y=dat, labs=labs, s0=s0)
   z <- apply(perm_labs, MARGIN=2, FUN=function(l){
     huber_stats2(dat, labs=l, s0=s0)
