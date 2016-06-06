@@ -38,9 +38,9 @@ window_test <- function(windows, type.sequence, dat, labs, s0=c(0, 0, 0),
     if(stat.names[i]=="Poisson") stats[i,] <- pois_regression(Y=window.dat, labs=labs, s0=s0[i])
     else if(stat.names[i]=="Huber")  stats[i, ] <- cfdrSims:::huber_stats2(Y=window.dat, labs=labs, s0=s0[i])
     else if(stat.names[i]=="t-test") stats[i, ]<- cfdrSims:::t_stats(window.dat, labs=labs, s0=s0[i])
-    rate_list[[i]] <- t(sapply(sort(abs(stats[i,])), FUN=function(x){
+    rate_list[[i]] <- data.frame(t(sapply(sort(abs(stats[i,])), FUN=function(x){
       tpr_nfp(s$signal, discoveries=S[abs(stats[i,]) >= x, , drop=FALSE])
-    }))
+    })))
   }
   return(list("stats"=stats, "rate_list"=rate_list, "stat.names"=stat.names))
 
