@@ -21,86 +21,50 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
 
   if(!is.null(seed)) set.seed(seed)
   if(!is.null(type.def)) stopifnot(names(type.def) ==c("p1", "p2"))
+    else type.def=define_types()
 
   r <- length(type.sequence)
   q <- sum(type.sequence %in% 4:6)
   p <- 200 * length(type.sequence)
   b <- length(level)
   cat(q, " regions with signal,", r-q, " regions without.\n")
+
   #Build signal intervals object
-  if(q > 0){
-    signal <- matrix(nrow=q, ncol=2)
-    i <- 1; ct <- 1
-    for(t in type.sequence){
-      if(t %in% 4:6){
-        signal[ct,] <- c(i+80, i + 118) #Signal is spread out due to smoothing
-        ct <- ct + 1
-      }
-      i <- i + 200
-    }
-    signal <- Intervals(signal)
-    not_signal <- interval_complement(signal)
-  }else{
-    not_signal <- Intervals(matrix( c(-Inf, Inf), ncol=2))
-  }
-  #Intervals object giving each region
-  rI <- Intervals(cbind(200*((1:r)-1) + 1, 200*(1:r)))
+  S <- get_signal(type.sequence)
 
   labs <- rep(c(0, 1), sample.size)
   perms <- replicate(n=n.perms, expr = {
     sample( labs, size=length(labs), replace=FALSE)
   })
 
-  f.disc <- array(dim=c(3, r, b))
   n.f.disc <- n.t.disc <-  array(0, dim=c(3, b))
-  if(q > 0) t.disc <- array(0, dim=c(3, q, b))
-    else t.disc=NULL
+
+  D <- sample_data(type.sequence=type.sequence, sample.size=sample.size, type.def=type.def)
   if(save.data){
     stats <- array(dim=c(3, p, 1+n.perms))
   }else{
-    dat <- NULL
     stats <- NULL
   }
-  ref.names <- c("Poisson", "Huber", "t-test")
-
-
-  D <- sample_data(type.sequence=type.sequence, sample.size=sample.size, type.def=type.def)
-
-  for(st in stat.names){
-    cat(st, " ")
-    j <- which(ref.names==st)
-    if(st=="Poisson") Z <- get_stats_pois(D$dat , labs, perms, s0=s0[1])
-      else if(st=="Huber") Z <- get_stats_huber(D$dat, labs, perms, s0=s0[2])
-        else if(st=="t-test") Z <- get_stats_ttest(D$dat, labs, perms, s0=s0[3])
+  for(i in 1:length(stat.names)){
+    if(stat.names[i]=="Poisson") Z <- get_stats_pois(D$dat , labs, perms, s0=s0[i])
+      else if(stat.names[i]=="Huber") Z <- get_stats_huber2(D$dat, labs, perms, s0=s0[i])
+        else if(stat.names[i]=="t-test") Z <- get_stats_ttest(D$dat, labs, perms, s0=s0[i])
 
     cl <- get_clusters(Z, 1:p, bw=20, nlam=50, level=level)
-    if(save.data) stats[j, , ] <- Z
-    for(k in 1:b){
-      if(nrow(cl$clust[[k]])> 0){
-        if(q > 0){
-          td <- interval_overlap(cl$clust[[k]], signal)
-          #1 if overlapping with signal, 0 otherwise
-          td_class <- unlist(lapply(td, FUN=length))
-          td <- unlist(td)
-          t.disc[j, td, k] <- 1
-          n.t.disc[j, k] <- sum(td_class > 0)
-        }else{
-          td_class <- rep(0, nrow(cl$clust[[k]]))
-        }
-        td_region <- unlist(interval_overlap(cl$clust[[k]], rI))
-        f.disc.region <- rep(0, r)
-        f.disc.region[td_region[td_class==0]] <- 1
-        f.disc[j, ,k] <- f.disc.region
-        n.f.disc[j, k] <- sum(td_class==0)
-      }else{
-        f.disc[j, ,k] <- rep(0, r)
+    if(save.data) stats[i, , ] <- Z
+    for(j in 1:b){
+      if(nrow(cl$clust[[j]])> 0){
+        rates <- cfdrSims:::tpr_nfp(S$signal, discoveries=cl$clust[[j]])
+        n.t.disc[i, j] <- rates["ntp"]
+        n.f.disc[i, j] <- rates["nfp"]
       }
     }
     cat("\n")
   }
-  if(is.null(type.def)) type.def=define_types()
+
+  if(!save.data) D$dat <- NULL
   return(list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc,
-              "f.disc"=f.disc, "t.disc"=t.disc, "stat.names"=stat.names,
+              "stat.names"=stat.names,
               "type.sequence"=type.sequence, "sample.size"=sample.size,
               "dat"=D$dat, "stats"=stats, "type.def"=type.def))
 }
