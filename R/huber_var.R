@@ -15,6 +15,68 @@ huber_var <- function(x, muH, k){
   return(sum(ifs^2)/n^2)
 }
 
+huber_var_eq6.5 <- function(f){
+  stopifnot(any(class(f)=="rlm"))
+  X <- model.matrix(f)
+  r <- f$residuals
+  k <- f$k2*f$s
+  m <- sum(-k < r & r < k)
+  n <- length(r)
+  p <- dim(X)[2]
+  K <- 1 + (p/n)*(1-m)/m #Eq. (6.11), page 174 Huber, Robust Statistics
+  psi_r <- r*pmin(1, k/abs(r))
+  psi_prime_r <- as.numeric(abs(r) < k)
+  return((K^2)*( (1/(n-p))* sum(psi_r^2)/(mean(psi_prime_r)^2))*solve(t(X)%*%X))
+}
+
+
+huber_var_eq6.6 <- function(f){
+  stopifnot(any(class(f)=="rlm"))
+  X <- model.matrix(f)
+  r <- f$residuals
+  k <- f$k2*f$s
+  m <- sum(-k < r & r < k)
+  n <- length(r)
+  p <- dim(X)[2]
+  K <- 1 + (p/n)*(1-m)/m #Eq. (6.11), page 174 Huber, Robust Statistics
+  psi_r <- r*pmin(1, k/abs(r))
+  psi_prime_r <- as.numeric(abs(r) < k)
+  W <- matrix(nrow=p, ncol=p)
+  for(j in 1:p){
+    for(k in 1:p){
+      W[j, k] <- 0
+      for(i in 1:n){
+        W[j, k] <- W[j, k] + psi_prime_r[i]*X[i, j]*X[i, k]
+      }
+    }
+  }
+  return(K*( (1/(n-p))* sum(psi_r^2)/mean(psi_prime_r))*solve(W))
+}
+
+huber_var_eq6.7 <- function(f){
+  stopifnot(any(class(f)=="rlm"))
+  X <- model.matrix(f)
+  r <- f$residuals
+  k <- f$k2*f$s
+  m <- sum(-k < r & r < k)
+  n <- length(r)
+  p <- dim(X)[2]
+  K <- 1 + (p/n)*(1-m)/m #Eq. (6.11), page 174 Huber, Robust Statistics
+  psi_r <- r*pmin(1, k/abs(r))
+  psi_prime_r <- as.numeric(abs(r) < k)
+  W <- matrix(nrow=p, ncol=p)
+  for(j in 1:p){
+    for(k in 1:p){
+      W[j, k] <- 0
+      for(i in 1:n){
+        W[j, k] <- W[j, k] + psi_prime_r[i]*X[i, j]*X[i, k]
+      }
+    }
+  }
+  return((1/K)* (1/(n-p))* sum(psi_r^2)*solve(W)%*%(t(X)%*%X)%*%solve(W))
+}
+
+
 
 #'Calculate two sample Huber statsitic
 #'@description Calculate two sample Huber
@@ -60,8 +122,8 @@ huber_scale_mad <- function(Y, labs, k2=1.345){
 huber_scale_prop2 <- function(Y, labs, k2=1.345){
 
   R <- matrix(nrow=nrow(Y), ncol=ncol(Y))
-  m1 <- apply(Y[,labs==0], MARGIN=1, FUN=median)
-  m2 <- apply(Y[,labs==1], MARGIN=1, FUN=median)
+  m1 <- apply(Y[,labs==0, drop=FALSE], MARGIN=1, FUN=median)
+  m2 <- apply(Y[,labs==1, drop=FALSE],  MARGIN=1, FUN=median)
   R[,labs==0] <- Y[,labs==0]-m1
   R[,labs==1] <- Y[,labs==1]-m2
 
