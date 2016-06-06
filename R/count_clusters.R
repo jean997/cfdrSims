@@ -1,5 +1,6 @@
 #'@import intervals
 #'@import MASS
+#'@import ROCR
 
 #'@title Return clusters at a given level
 #'@description Find indices of clusters  given a threshold and level for merging
