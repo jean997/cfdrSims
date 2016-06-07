@@ -1,15 +1,15 @@
 
 #' Test simulations in windows
 #'@description Calculate test statistics binning over aupplied regions
-#'@param windows p by 2 matrix giving region boundaries
-#'@param type.sequence Vector of integers in 1:6 giving the type of each subregion. Length q.
+#'@param windows q by 2 matrix giving region boundaries
+#'@param type.sequence Vector of integers in 1:6 giving the type of each subregion.
 #'@param dat p x n matrix of data
 #'@param labs 0/1 treatment status of each sample (length n)
 #'@param s0
 #'@param stat.names Length k. Contains elements of "Poisson", "Huber", "t-test"
 #' @return A list with elements:
 #' \describe{
-#' \item{\code{stats}}{ matrix k by q where k giving statistic for each bin }
+#' \item{\code{stats}}{ matrix k by q giving statistic for each bin }
 #' \item{\code{rate_list}}{list of length k. Each element is a three column matrix with columns fdp, tp, fp}
 #' }
 #'@export
