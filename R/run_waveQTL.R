@@ -1,5 +1,6 @@
 
-run_waveQTL <- function(windows,type.sequence, dat, sample.size){
+run_waveQTL <- function(windows,type.sequence, dat, sample.size,
+                        waveQTL_loc="~/Desktop/Cluster_FDR/cfdrSims/WaveQTL-master/bin/WaveQTL"){
 
   N <- floor(runif(n=1, min=10, max=1e9))
   geno <- c("chr1.1", "A", "G", rep(c(0, 1), sample.size))
@@ -21,7 +22,7 @@ run_waveQTL <- function(windows,type.sequence, dat, sample.size){
     f <- tempfile(tmpdir = ".")
     write.table(res$WCs, file=paste0(f, "_pheno.txt"), row.names=FALSE, col.names=FALSE, quote=FALSE)
     cat(res$filtered.WCs, file=paste0(f, "_use.txt"))
-    cmd <- paste0("~/Desktop/Cluster_FDR/cfdrSims/WaveQTL-master/bin/WaveQTL -gmode 1 -g geno_", N, ".txt -p ",
+    cmd <- paste0(waveQTL_loc, " -gmode 1 -g geno_", N, ".txt -p ",
             f, "_pheno.txt -u ", f, "_use.txt -o temp", N, " -f ", n, " -numPerm 1000 -fph 2")
     system(cmd)
     pval <- read.table(paste0("output/temp", N, ".fph.pval.txt"), header=TRUE)
