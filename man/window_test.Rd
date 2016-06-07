@@ -8,9 +8,9 @@ window_test(windows, type.sequence, dat, labs, s0 = c(0, 0, 0),
   stat.names = c("Poisson", "Huber", "t-test"))
 }
 \arguments{
-\item{windows}{p by 2 matrix giving region boundaries}
+\item{windows}{q by 2 matrix giving region boundaries}
 
-\item{type.sequence}{Vector of integers in 1:6 giving the type of each subregion. Length q.}
+\item{type.sequence}{Vector of integers in 1:6 giving the type of each subregion.}
 
 \item{dat}{p x n matrix of data}
 
@@ -23,7 +23,7 @@ window_test(windows, type.sequence, dat, labs, s0 = c(0, 0, 0),
 \value{
 A list with elements:
 \describe{
-\item{\code{stats}}{ matrix k by q where k giving statistic for each bin }
+\item{\code{stats}}{ matrix k by q giving statistic for each bin }
 \item{\code{rate_list}}{list of length k. Each element is a three column matrix with columns fdp, tp, fp}
 }
 }
