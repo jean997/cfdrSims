@@ -27,7 +27,7 @@ window_test <- function(windows, type.sequence, dat, labs, s0=c(0, 0, 0),
   l[d==0] <- 1
 
   window.dat <- matrix(nrow=p, ncol=n)
-  stats <- matrix(nrow=length(stat.names), ncol=p)
+  stats <- qvals <- pvals <- matrix(nrow=length(stat.names), ncol=p)
   for(i in 1:n){
     for(j in 1:p){
       window.dat[j, i] <- sum(dat[windows[j, 1]:windows[j, 2], i])
@@ -41,6 +41,8 @@ window_test <- function(windows, type.sequence, dat, labs, s0=c(0, 0, 0),
     rate_list[[i]] <- data.frame(t(sapply(sort(abs(stats[i,])), FUN=function(x){
       tpr_nfp(s$signal, discoveries=S[abs(stats[i,]) >= x, , drop=FALSE])
     })))
+    pvals[i,] <- sapply(stats[i,], FUN=get.p)
+    qvals[i,] <- p.adjust(pvals[i,], method="BH")
   }
   return(list("stats"=stats, "rate_list"=rate_list, "stat.names"=stat.names))
 

@@ -20,7 +20,7 @@ choose_z_even <- function(perm.stats, nlam, bw, pos, z0,
                           max.log.lam=NULL, seg.ends=NULL, return.z=TRUE,
                           keep.lists=FALSE, except=NULL, mx=NULL){
   if(is.null(seg.ends)){
-    seg.ends <- c(length(x))
+    seg.ends <- c(nrow(perm.stats))
   }
   nseg <- length(seg.ends)
   nperm <- ncol(perm.stats)
@@ -48,17 +48,15 @@ choose_z_even <- function(perm.stats, nlam, bw, pos, z0,
     })
     m <- sort(unlist(maxes), decreasing=TRUE)
     mx[[i+k]] <- cbind(m, (1:length(m))/(nperm*(seg.ends[i]-strt + 1)))
-    max.lam <- min(max.lam, max(log10(mx[[i+k]][,2])))
-    min.lam <- max(min.lam, min(log10(mx[[i+k]][,2])))
     strt <- seg.ends[i] + 1
   }
   cat("\n")
   if(!return.z) return(mx)
 
 
-  min.log.lam <- sapply(mx, FUN=function(m){min(log10(m[,2]))})
+  min.log.lam <- min(sapply(mx, FUN=function(m){min(log10(m[,2]))}))
 
-  if(!is.null(max.log.lam)) max.log.lam <- sapply(mx, FUN=function(m){max(log10(m[,2]))})
+  if(is.null(max.log.lam)) max.log.lam <- min(sapply(mx, FUN=function(m){max(log10(m[,2]))}))
 
   lams <- seq(min.log.lam, max.log.lam, length.out=nlam)
   z <- sapply(mx, FUN=function(m){

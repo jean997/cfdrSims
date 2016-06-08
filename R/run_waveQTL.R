@@ -33,5 +33,6 @@ run_waveQTL <- function(windows,type.sequence, dat, sample.size,
   rates <- data.frame(t(sapply(sort(-log10(pvals)), FUN=function(x){
     tpr_nfp(s$signal, discoveries=windows[-log10(pvals) >= x, , drop=FALSE])
   })))
-  return(list("pvals"=pvals, "rates"=rates))
+  qvals <- p.adjust(pvals, method="BH")
+  return(list("pvals"=pvals, "qvals"=qvals, "rates"=rates))
 }
