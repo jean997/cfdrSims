@@ -21,17 +21,15 @@ window_test <- function(windows, type.sequence, dat, labs, s0=c(0, 0, 0),
   S <- Intervals(windows)
 
   l <- rep(0, p)
-  s <- get_signal(type.sequence, bandwidth=0)
+  s <- cfdrSims:::get_signal(type.sequence, bandwidth=0)
   p0 <- nrow(s$signal)
   d <- distance_to_nearest(S, s$signal)
   l[d==0] <- 1
 
   window.dat <- matrix(nrow=p, ncol=n)
   stats <- qvals <- pvals <- matrix(nrow=length(stat.names), ncol=p)
-  for(i in 1:n){
-    for(j in 1:p){
-      window.dat[j, i] <- sum(dat[windows[j, 1]:windows[j, 2], i])
-    }
+  for(i in 1:p){
+    window.dat[i, ] <- colSums(dat[windows[i, 1]:windows[i, 2], ])
   }
   rate_list <- list()
   for(i in 1:length(stat.names)){
@@ -41,7 +39,7 @@ window_test <- function(windows, type.sequence, dat, labs, s0=c(0, 0, 0),
     rate_list[[i]] <- data.frame(t(sapply(sort(abs(stats[i,])), FUN=function(x){
       tpr_nfp(s$signal, discoveries=S[abs(stats[i,]) >= x, , drop=FALSE])
     })))
-    pvals[i,] <- sapply(stats[i,], FUN=get.p)
+    pvals[i,] <- sapply(stats[i,], FUN=cfdrSims:::get.pt, df=n-2)
     qvals[i,] <- p.adjust(pvals[i,], method="BH")
   }
   return(list("stats"=stats, "rate_list"=rate_list, "stat.names"=stat.names, "pvals"=pvals, "qvals"=qvals))
