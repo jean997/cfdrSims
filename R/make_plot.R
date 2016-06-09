@@ -9,7 +9,8 @@
 #'@param levels Levels in summ.files
 #' @return nothing
 #'@export
-make_plot <- function(summ.files, out.name, lty.legend, ltys=c(2, 1), ymax=NULL, levels=c(0.02, 0.05, 0.1, 0.2)){
+make_plot <- function(summ.files, out.name, lty.legend, ltys=c(2, 1),
+                      ymax=NULL, levels=c(0.02, 0.05, 0.1, 0.2)){
 
   p = length(summ.files)
 
