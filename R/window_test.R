@@ -44,7 +44,7 @@ window_test <- function(windows, type.sequence, dat, labs, s0=c(0, 0, 0),
     pvals[i,] <- sapply(stats[i,], FUN=get.p)
     qvals[i,] <- p.adjust(pvals[i,], method="BH")
   }
-  return(list("stats"=stats, "rate_list"=rate_list, "stat.names"=stat.names))
+  return(list("stats"=stats, "rate_list"=rate_list, "stat.names"=stat.names, "pvals"=pvals, "qvals"=qvals))
 
 
 
