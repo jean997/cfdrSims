@@ -34,6 +34,6 @@ run_waveQTL <- function(windows,type.sequence, dat, sample.size,
     tpr_nfp(s$signal, discoveries=windows[-log10(pvals) >= x, , drop=FALSE])
   })))
   qvals <- p.adjust(pvals, method="BH")
-  unlinkcat(paste0("geno_", N, ".txt"))
+  unlink(paste0("geno_", N, ".txt"))
   return(list("pvals"=pvals, "qvals"=qvals, "rates"=rates))
 }
