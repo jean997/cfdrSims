@@ -64,7 +64,7 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
 
   if(!save.data) D$dat <- NULL
   return(list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc,
-              "stat.names"=stat.names,
+              "stat.names"=stat.names, "cl"=cl,
               "type.sequence"=type.sequence, "sample.size"=sample.size,
               "dat"=D$dat, "stats"=stats, "type.def"=type.def))
 }
