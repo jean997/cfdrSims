@@ -40,11 +40,15 @@ choose_z_even <- function(perm.stats, nlam, bw, pos, z0,
   for(i in 1:nseg){
     cat(i, " ")
     maxes <- apply(perm.smooth[strt:seg.ends[i],], MARGIN=2, FUN=function(xs){
-      q0 <-rle( abs(xs) > z0 )
-      p0 <- length(q0$lengths)
-      starts0 <- c(1, cumsum(q0$lengths)[-p0]+1)[q0$values]
-      stops0 <- (cumsum(q0$lengths))[q0$values]
-      sapply(1:length(starts0), FUN=function(j){ max(abs(xs)[starts0[j]:stops0[j]])})
+      if(all(abs(xs) <= z0)){
+        c()
+      }else{
+        q0 <-rle( abs(xs) > z0 )
+        p0 <- length(q0$lengths)
+        starts0 <- c(1, cumsum(q0$lengths)[-p0]+1)[q0$values]
+        stops0 <- (cumsum(q0$lengths))[q0$values]
+        sapply(1:length(starts0), FUN=function(j){ max(abs(xs)[starts0[j]:stops0[j]])})
+      }
     })
     m <- sort(unlist(maxes), decreasing=TRUE)
     mx[[i+k]] <- cbind(m, (1:length(m))/(nperm*(seg.ends[i]-strt + 1)))
