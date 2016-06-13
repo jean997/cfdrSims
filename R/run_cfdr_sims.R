@@ -79,7 +79,7 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
               "dat"=D$dat, "stats"=stats, "type.def"=type.def)
   if(!is.null(file.name)){
     save(R, file=file.name)
-    unlink(temp.file)
+    unlink(temp.name)
   }else{
     return(R)
   }
