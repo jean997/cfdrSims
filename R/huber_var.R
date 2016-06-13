@@ -140,12 +140,22 @@ huber_scale_prop2 <- function(Y, labs, k2=1.345){
   return(s)
 }
 
-huber_stats2 <- function(Y, labs, k=1.345, s0=0){
+huber_stats2 <- function(Y, labs, k=1.345, s0=0, maxit=20){
   B <- apply(Y, MARGIN=1, FUN=function(y){
-    f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber")
+    f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
     b1 <- summary(f)$coefficients[2, 1]
     s <- summary(f)$coefficients[2, 2] + s0
     return(b1/s)
+  })
+  return(B)
+}
+
+huber_helper <- function(Y, labs, k=1.345, maxit=20){
+  B <- apply(Y, MARGIN=1, FUN=function(y){
+    f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
+    b1 <- summary(f)$coefficients[2, 1]
+    s <- summary(f)$coefficients[2, 2]
+    return(c(b1, s))
   })
   return(B)
 }
