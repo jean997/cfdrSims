@@ -38,7 +38,7 @@ dnase_choose_s0_z0 <- function(file.name, pheno.file, seed, has.stats=FALSE, n.s
   ix <- sample(1:n, size=n.select, replace=FALSE)
   dat <- dat[ix,]
   X <- read_table(pheno.file, col_names=FALSE)
-  x <- X[match(names(dat)[-1], X[,1]),2]
+  x <- as.numeric(X[match(names(dat)[-1], X[,1]),2])
   s= choose_s0_z0(Y=dat, labs = x)
   return(s)
 }
