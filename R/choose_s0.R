@@ -1,8 +1,8 @@
 
 
-choose_s0 <- function(Y, labs, maxit=50){
+choose_s0_z0 <- function(Y, labs, pos, maxit=50, z0_quantile=0.9, bandwidth=20){
 
-  x <- cfdrSims:::huber_helper(Y=d$dat[1:2000, ], labs=rep(c(0, 1), d$sample.size), maxit=maxit)
+  x <- cfdrSims:::huber_helper(Y=Y, labs=labs, maxit=maxit)
   salpha <- c(0, as.numeric(quantile(x[2,], probs=seq(0, 1, by=0.05))))
   nn <- length(salpha)
   ix <- sapply(x[2,], FUN=function(w){ sum(w >= salpha[-nn])})
@@ -20,13 +20,25 @@ choose_s0 <- function(Y, labs, maxit=50){
 
   W <- optimize(fct, interval=range(x[2,]), Y=Y,
                 labs=labs, ix=ix, maxit=maxit, tol=tol)
-  return(W$minimum)
-  #for(s in salpha[-1]){
-  #  cat(s, " ")
-  #  xx <- cfdrSims:::huber_stats2(Y, labs, s0=s, maxit=maxit)
-  #  v <- by(data=xx, INDICES = ix, FUN = mad)
-  #  cvs <- c(cvs, sd(v)/mean(v))
-  #}
-  #s=salpha[which.min(cvs)]
-  #return(list("cv"=cvs, "salpha"=salpha, "s"=s, "s0s"=s0))
+  xx <- cfdrSims:::huber_stats2(Y, labs, s0=W$minimum, maxit=maxit)
+  xs <- ksmooth(x=pos, y=xx, bandwidth=bandwidth)$y
+  z0 <- as.numeric(quantile(xs, probs=z0_quantile))
+  return(list("s0"=W$minimum, "z0"=z0))
+}
+
+dnase_choose_s0_z0 <- function(file.name, pheno.file, seed, has.stats=FALSE, n.select=1e4){
+  set.seed(seed)
+  dat <- read_table(file.name)
+  n <- nrow(dat)
+  p <- ncol(dat)
+  if(has.stats){
+    dat <- dat[,-p]
+    p <- p-1
+  }
+  ix <- sample(1:n, size=n.select, replace=FALSE)
+  dat <- dat[ix,]
+  X <- read_table(pheno.file, col_names=FALSE)
+  x <- X[match(names(dat)[-1], X[,1]),2]
+  s= choose_s0(Y=dat, labs = x)
+  return(s)
 }

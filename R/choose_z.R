@@ -16,7 +16,7 @@
 #' a list of cluster peaks for each segment. mx has length nseg and each element has two columns - peak height and
 #' empirical lambda value.
 #'@export
-choose_z_even <- function(perm.stats, nlam, bw, pos, z0,
+choose_z_even <- function(perm.stats, nlam, bw, pos, z0, x.range=NULL,
                           max.log.lam=NULL, seg.ends=NULL, return.z=TRUE,
                           keep.lists=FALSE, except=NULL, mx=NULL){
   if(is.null(seg.ends)){
@@ -24,8 +24,11 @@ choose_z_even <- function(perm.stats, nlam, bw, pos, z0,
   }
   nseg <- length(seg.ends)
   nperm <- ncol(perm.stats)
+  if(is.null(x.range)) pos.out <- pos
+    else pos.out <- pos[x.range[1]:x.range[2]]
   perm.smooth <- apply(perm.stats, MARGIN=2, FUN=function(x){
-    ksmooth(pos, x, bandwidth=bw, x.points=pos)$y
+    ksmooth(pos, x, bandwidth=bw, x.points=pos.out)$y
+    #ksmooth_0(pos, x, bandwidth=bw)
   })
   if(!is.null(except)){
     for(j in 1:nrow(except)){
