@@ -28,7 +28,7 @@ choose_s0_z0 <- function(Y, labs, pos, maxit=50, z0_quantile=0.9, bandwidth=20){
 
 dnase_choose_s0_z0 <- function(file.name, pheno.file, seed, has.stats=FALSE, n.select=1e4){
   set.seed(seed)
-  dat <- read_table(file.name)
+  dat <- read_delim(file.name, delim=" ")
   n <- nrow(dat)
   p <- ncol(dat)
   if(has.stats){
@@ -37,8 +37,8 @@ dnase_choose_s0_z0 <- function(file.name, pheno.file, seed, has.stats=FALSE, n.s
   }
   ix <- sample(1:n, size=n.select, replace=FALSE)
   dat <- dat[ix,]
-  X <- read_table(pheno.file, col_names=FALSE)
+  X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
   x <- as.numeric(X[match(names(dat)[-1], X[,1]),2])
-  s= choose_s0_z0(Y=dat, labs = x)
+  s= choose_s0_z0(Y=dat[, -1], labs = x, pos=dat[,1])
   return(s)
 }
