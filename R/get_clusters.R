@@ -29,7 +29,8 @@ get_clusters <- function(stats, pos, bw, nlam, lambda.max=NULL,
   nseg <- length(seg.ends)
   d <- c(seg.ends[1], diff(seg.ends))
 
-  z <- choose_z_even(stats[, 2:N], nlam, bw, pos, z0, lambda.max, seg.ends, except=signal)
+  z <- choose_z_even(stats[, 2:N], nlam, bw, pos, z0,
+                     max.log.lam=lambda.max, seg.ends=seg.ends, except=signal)
 
   R <- count_clusters_merged(x=x, z=z, z0=z0, seg.ends=seg.ends)
 
