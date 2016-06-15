@@ -145,6 +145,7 @@ huber_stats2 <- function(Y, labs, k=1.345, s0=0, maxit=20){
     f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
     b1 <- summary(f)$coefficients[2, 1]
     s <- summary(f)$coefficients[2, 2] + s0
+    if(is.na(b1/s)) return(0)
     return(b1/s)
   })
   return(B)
