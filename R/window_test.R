@@ -42,7 +42,8 @@ window_test <- function(windows, type.sequence, dat, labs, s0=c(0, 0, 0),
     pvals[i,] <- sapply(stats[i,], FUN=cfdrSims:::get.pt, df=n-2)
     qvals[i,] <- p.adjust(pvals[i,], method="BH")
   }
-  return(list("stats"=stats, "rate_list"=rate_list, "stat.names"=stat.names, "pvals"=pvals, "qvals"=qvals))
+  return(list("stats"=stats, "rate_list"=rate_list,
+              "stat.names"=stat.names, "pvals"=pvals, "qvals"=qvals, "class"=l))
 
 
 
