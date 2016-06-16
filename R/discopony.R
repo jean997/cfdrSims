@@ -83,6 +83,8 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
 
   if(all(m < zmin)){
     mx <- cbind(zmin, 0)
+  }else if(sum(m >=zmin) < 5){
+    mx <- mx[1:5, ]
   }else{
     mx <- mx[m >= zmin,]
   }
