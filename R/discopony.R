@@ -8,7 +8,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, z0, zmin,
                       bedops.loc="~/bedops/bin",
                       starch.loc="/projects/geneva/gcc-fs2/jean/Group_Curves/DNaseI/All_Download/jmorrison/SCLC-basal/perBase/"){
 
-  X <- read_table(pheno.file, col_names=FALSE)
+  X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
   n <- nrow(X)
   set.seed(seed)
   perms <- replicate(n=n.perm, expr = {
