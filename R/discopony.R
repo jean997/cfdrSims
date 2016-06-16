@@ -8,9 +8,6 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, z0, zmin,
                       bedops.loc="~/bedops/bin",
                       starch.loc="/projects/geneva/gcc-fs2/jean/Group_Curves/DNaseI/All_Download/jmorrison/SCLC-basal/perBase/"){
 
-  stopifnot(length(chr.ends) ==2)
-
-
   X <- read_table(pheno.file, col_names=FALSE)
   n <- nrow(X)
   set.seed(seed)
@@ -37,6 +34,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, z0, zmin,
   y <- huber_stats2(Y=dat[, -1], labs=X[,2],s0=s0, maxit=maxit)
   ys <- ksmooth_0(x=pos, y=y, bandwidth = bandwidth)[ix1:ix2]
   if(all(abs(ys) < zmin)){
+    cat("No clusters exceed ", zmin)
     #unlink(file.name)
     return(0)
   }
@@ -75,6 +73,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, z0, zmin,
   id=paste0(which.chr,".", which.chunk)
   R <- list("max1"=max1, "mx"=mx, "id"=id)
   save(R, file=file.name)
+  return(nrow(mx))
 }
 
 discopony_choose_z <- function(file.list, zmin, nlam){
