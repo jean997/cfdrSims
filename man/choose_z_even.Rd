@@ -4,9 +4,9 @@
 \alias{choose_z_even}
 \title{Select threshold value in each segment for a range of lambda values}
 \usage{
-choose_z_even(perm.stats, nlam, bw, pos, z0, max.log.lam = NULL,
-  seg.ends = NULL, return.z = TRUE, keep.lists = FALSE, except = NULL,
-  mx = NULL)
+choose_z_even(perm.stats, nlam, bw, pos, z0, x.range = NULL,
+  max.log.lam = NULL, seg.ends = NULL, return.z = TRUE,
+  keep.lists = FALSE, except = NULL, mx = NULL)
 }
 \arguments{
 \item{perm.stats}{p x B matrix of permutation statistics}

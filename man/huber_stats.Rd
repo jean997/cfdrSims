@@ -2,7 +2,7 @@
 % Please edit documentation in R/huber_var.R
 \name{huber_stats}
 \alias{huber_stats}
-\title{Calculate two sample Huber statsitic}
+\title{Calculate two sample Huber statsitic (Jean's implementation, 1 iteration)}
 \usage{
 huber_stats(Y, labs, k = 1.345, scale = NULL, s0 = 0)
 }

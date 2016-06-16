@@ -1,4 +1,4 @@
-#'Calculate variance of the huber estimator
+#'Calculate variance of the huber estimator using influence functions
 #'@description Calculate variance of the huber estimator using influence functions
 #'@param x Data
 #'@param muH Estimate of true huber mean
@@ -15,6 +15,11 @@ huber_var <- function(x, muH, k){
   return(sum(ifs^2)/n^2)
 }
 
+#'Calculate variance of the huber estimator using equation 6.5 from Huber.
+#'@description Calculate variance of the huber estimator using influence functions
+#'@param f rlm object
+#'@return variance
+#'@export
 huber_var_eq6.5 <- function(f){
   stopifnot(any(class(f)=="rlm"))
   X <- model.matrix(f)
@@ -29,7 +34,11 @@ huber_var_eq6.5 <- function(f){
   return((K^2)*( (1/(n-p))* sum(psi_r^2)/(mean(psi_prime_r)^2))*solve(t(X)%*%X))
 }
 
-
+#'Calculate variance of the huber estimator using equation 6.6 from Huber.
+#'@description Calculate variance of the huber estimator using influence functions
+#'@param f rlm object
+#'@return variance
+#'@export
 huber_var_eq6.6 <- function(f){
   stopifnot(any(class(f)=="rlm"))
   X <- model.matrix(f)
@@ -53,6 +62,11 @@ huber_var_eq6.6 <- function(f){
   return(K*( (1/(n-p))* sum(psi_r^2)/mean(psi_prime_r))*solve(W))
 }
 
+#'Calculate variance of the huber estimator using equation 6.7 from Huber.
+#'@description Calculate variance of the huber estimator using influence functions
+#'@param f rlm object
+#'@return variance
+#'@export
 huber_var_eq6.7 <- function(f){
   stopifnot(any(class(f)=="rlm"))
   X <- model.matrix(f)
@@ -78,7 +92,7 @@ huber_var_eq6.7 <- function(f){
 
 
 
-#'Calculate two sample Huber statsitic
+#'Calculate two sample Huber statsitic (Jean's implementation, 1 iteration)
 #'@description Calculate two sample Huber
 #'@param Y matrix (p x n)
 #'@param labs 0s and 1s
@@ -140,6 +154,16 @@ huber_scale_prop2 <- function(Y, labs, k2=1.345){
   return(s)
 }
 
+
+#'Calculate Huber statsitic for simple linear regression usnig rlm
+#'@description Calculate two sample Huber
+#'@param Y matrix (p x n)
+#'@param labs 0s and 1s
+#'@param k Threshold for huber estimator in multiples of scale parameter.
+#'@param s0 Additional variance
+#'@param maxit Maixum iterations to pass to rlm.
+#'@return Vector of test statistics.
+#'@export
 huber_stats2 <- function(Y, labs, k=1.345, s0=0, maxit=20){
   B <- apply(Y, MARGIN=1, FUN=function(y){
     f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
@@ -151,6 +175,15 @@ huber_stats2 <- function(Y, labs, k=1.345, s0=0, maxit=20){
   return(B)
 }
 
+#'Just like huber_stats2 but returns coefficient and sd estimates
+#'@description Calculate two sample Huber
+#'@param Y matrix (p x n)
+#'@param labs 0s and 1s
+#'@param k Threshold for huber estimator in multiples of scale parameter.
+#'@param s0 Additional variance
+#'@param maxit Maixum iterations to pass to rlm.
+#'@return 2 by p matrix. Top row is coefficient estimate. Bottom row is sd estimates.
+#'@export
 huber_helper <- function(Y, labs, k=1.345, maxit=20){
   B <- apply(Y, MARGIN=1, FUN=function(y){
     f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)

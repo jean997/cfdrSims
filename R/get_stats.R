@@ -1,8 +1,3 @@
-#set.seed(17897563)
-#perms <- replicate(n=500, expr = {
-#   sample( rep(c(0, 1), each=10), size=20, replace=FALSE)
-#  })
-#save(perms, file="perm_labs.RData")
 
 #'Get Poisson stats
 #'@description Calculate Poisson regression statistic at each position
@@ -46,7 +41,17 @@ get_stats_huber<- function(dat, labs, perm_labs,
   return(Z)
 }
 
-
+#'Get Huber stats
+#'@description Calculate Huber statistic at each position
+#'@param dat Matrix of data (n x p)
+#'@param labs Labels (0s and 1s)
+#'@param perm_labs Permutation labels (n x n.perm)
+#'@param s0 Additional variance
+#'@param maxit Maximum iterations for rlm
+#'@return A matrix p x (1 + n.perm)
+#'The first column is for te original labels.
+#'The next columns are for the permutation labels
+#'@export
 get_stats_huber2<- function(dat, labs, perm_labs, s0=0, maxit=50){
   z1 <- cfdrSims:::huber_stats2(Y=dat, labs=labs, s0=s0)
   if(is.null(perm_labs)) return(z1)
@@ -69,6 +74,7 @@ get_stats_huber2<- function(dat, labs, perm_labs, s0=0, maxit=50){
 #'@export
 get_stats_ttest<- function(dat, labs, perm_labs, s0=0.1){
   z1 <- t_stats(dat, labs=labs, s0=s0)
+  if(is.null(perm_labs)) return(z1)
   z <- apply(perm_labs, MARGIN=2, FUN=function(l){
     t_stats(dat, labs=l, s0=s0)
   })

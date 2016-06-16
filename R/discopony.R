@@ -1,40 +1,46 @@
 
 
-
-discopony_maxes1 <- function(dat.file, pheno.file, s0, z0, zmin,
+#' Get peak heights and permuted peak heights from dnase 1 data
+#'@description Finds peak heights and permuatation peak heights using dnase 1 data.
+#'@param dat.file Data file. Should have first
+#'column as position and a header giving sample names. One row per base pair.
+#'@param pheno.file Phenotype file. First column should correspond to the header of dat.file.
+#'@param s0 Variance inflation constant.
+#'@param zmin Lower bound on significance thresholds.
+#'@param z0 Reference level for merging
+#'@param strt Region start base pair (may not be the same as where dat.file starts)
+#'@param stp Region stop base pair.
+#'@param seed Set a seed for running permutations (Required)
+#'@param n.perm Number of permutations
+#'@param z0 Reference level for merging
+#'@param bandwidth Smoother bandwidth.
+#'@param maxit Maximum iterations for rlm.
+#' @return Saves an RData file with maxes list. Returns the length of that list.
+#'@export
+discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
                       strt, stp, seed, n.perm,
-                      bandwidth=50, maxit=50,
-                      chunk.size=10, prefix="",
-                      bedops.loc="~/bedops/bin",
-                      starch.loc="/projects/geneva/gcc-fs2/jean/Group_Curves/DNaseI/All_Download/jmorrison/SCLC-basal/perBase/"){
+                      z0=zmin*0.3, bandwidth=50, maxit=50){
 
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
   n <- nrow(X)
+
+  #Permuted phenotypes
   set.seed(seed)
   perms <- replicate(n=n.perm, expr = {
     sample( X[,2], size=n, replace=FALSE)
   })
 
-#  strt0 <- strt <- chr.ends[1] + (which.chunk-1)*chunk.size*1000
-#  stp <- strt <- chunk.size*1000
-#  if(which.chunk > 1) strt0 <- strt - bandwidth
-#  stp0 <- stp + bandwidth
-
-#  file.name <- paste0(prefix, "chr", which.chr, "_chunk", which.chunk, ".RData")
-
-#  system(paste0("./starch_extract.py --nostats --start ", strt0, " --stop ", stp0,
-#        " --out ",  file.name, " --bedops-loc ", bdeops.loc,
-#        "--starch-loc", starch.loc, " chr", which.chr[i],
-#          " ", pheno.file))
-
+  #Read data
+  name.root <- unlist(strsplit(dat.file, ".txt"))[1]
   dat <- read_delim(dat.file, delim=" ")
   pos <- dat[,1]
+  #Chunks will have a little extra data to get the smoothing right
   ix1 <- min(which(pos >=strt))
   ix2 <- max(which(pos <= stp))
   y <- huber_stats2(Y=dat[, -1], labs=X[,2],s0=s0, maxit=maxit)
   ys <- ksmooth_0(x=pos, y=y, bandwidth = bandwidth)[ix1:ix2]
   if(all(abs(ys) < zmin)){
-    cat("No clusters exceed ", zmin)
+    cat("No clusters exceed ", zmin, "\n")
     #unlink(file.name)
     return(0)
   }
@@ -47,19 +53,15 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, z0, zmin,
 
   max1 <- apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(ys)[iv[1]:iv[2]])})
 
-  perm.sm <- apply(perms, MARGIN=2, FUN=function(l){
-      yy <- cfdrSims:::huber_stats2(dat[,-1], labs=l, s0=s0, maxit=maxit)
-      cfdrSims:::ksmooth_0(x=pos, y=yy, bandwidth = bandwidth)[ix1:ix2]
-  })
-  max.perm <- apply(perm.sm, MARGIN=2, FUN=function(ys){
-    if(all(abs(ys) <= z0)){
-      c()
-    }else{
-      q0 <-rle( abs(ys) > z0 )
-      p0 <- length(q0$lengths)
-      ivls <- cbind(c(1, cumsum(q0$lengths)[-p0]+1)[q0$values], (cumsum(q0$lengths))[q0$values])
-      apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(ys)[iv[1]:iv[2]])})
-    }
+  #Permutation test statistics and peak heights
+  max.perm <- apply(perm, MARGIN=2, FUN=function(l){
+    yy <- huber_stats2(dat[,-1], labs=l, s0=s0, maxit=maxit)
+    ksmooth_0(x=pos, y=yy, bandwidth = bandwidth)[ix1:ix2]
+    if(all(abs(ys) <= z0)) return(c())
+    q0 <-rle( abs(ys) > z0 )
+    p0 <- length(q0$lengths)
+    ivls <- cbind(c(1, cumsum(q0$lengths)[-p0]+1)[q0$values], (cumsum(q0$lengths))[q0$values])
+    apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(ys)[iv[1]:iv[2]])})
   })
   m <- sort(unlist(max.perm), decreasing=TRUE)
   mx <- cbind(m, (1:length(m))/(n.perm*(stp-strt + 1)))
@@ -69,9 +71,9 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, z0, zmin,
   }else{
     mx <- mx[m >= zmin,]
   }
-  file.name <- paste0(prefix, "chr", which.chr, "_chunk", which.chunk, "_mx.RData")
-  id=paste0(which.chr,".", which.chunk)
-  R <- list("max1"=max1, "mx"=mx, "id"=id)
+  file.name <- paste0(name.root, "_mx.RData")
+
+  R <- list("max1"=max1, "mx"=mx, "file"=dat.file)
   save(R, file=file.name)
   return(nrow(mx))
 }
