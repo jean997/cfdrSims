@@ -67,6 +67,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   max1 <- max1[max1 >= zmin]
 
   #Permutation test statistics and peak heights
+  cat("Calculating permutation peak heights.\n")
   max.perm <- apply(perms, MARGIN=2, FUN=function(l){
     yy <- huber_stats2(dat[,-1], labs=l, s0=s0, maxit=maxit)
     yys <- ksmooth_0(x=pos, y=yy, bandwidth = bandwidth)[ix1:ix2]
