@@ -4,8 +4,8 @@
 \alias{discopony_maxes1}
 \title{Get peak heights and permuted peak heights from dnase 1 data}
 \usage{
-discopony_maxes1(dat.file, pheno.file, s0, zmin, strt, stp, seed, n.perm,
-  z0 = zmin * 0.3, bandwidth = 50, maxit = 50)
+discopony_maxes1(dat.file, pheno.file, s0, zmin, seed, n.perm, strt = NULL,
+  stp = NULL, z0 = zmin * 0.3, bandwidth = 50, maxit = 50)
 }
 \arguments{
 \item{dat.file}{Data file. Should have first
@@ -17,13 +17,13 @@ column as position and a header giving sample names. One row per base pair.}
 
 \item{zmin}{Lower bound on significance thresholds.}
 
-\item{strt}{Region start base pair (may not be the same as where dat.file starts)}
-
-\item{stp}{Region stop base pair.}
-
 \item{seed}{Set a seed for running permutations (Required)}
 
 \item{n.perm}{Number of permutations}
+
+\item{strt}{Region start base pair (may not be the same as where dat.file starts)}
+
+\item{stp}{Region stop base pair.}
 
 \item{z0}{Reference level for merging}
 

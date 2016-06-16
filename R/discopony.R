@@ -18,7 +18,7 @@
 #' @return Saves an RData file with maxes list. Returns the length of that list.
 #'@export
 discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
-                      strt, stp, seed, n.perm,
+                      seed, n.perm, strt=NULL, stp=NULL,
                       z0=zmin*0.3, bandwidth=50, maxit=50){
 
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
@@ -34,9 +34,22 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   name.root <- unlist(strsplit(dat.file, ".txt"))[1]
   dat <- read_delim(dat.file, delim=" ")
   pos <- dat[,1]
+  #Make sure the phenotype is sorted correctly
+  X <- X[match(names(dat)[-1], X[,1]),  ]
   #Chunks will have a little extra data to get the smoothing right
-  ix1 <- min(which(pos >=strt))
-  ix2 <- max(which(pos <= stp))
+  if(!is.null(strt)){
+    ix1 <- min(which(pos >=strt))
+  }else{
+    ix1 <- 1
+    strt <- pos[1]
+  }
+  if(!is.null(stp)){
+    ix2 <- max(which(pos <= stp))
+  }else{
+    ix2 <- length(pos)
+    stp <- pos[ix2]
+  }
+  #Calculate statistics
   y <- huber_stats2(Y=dat[, -1], labs=X[,2],s0=s0, maxit=maxit)
   ys <- ksmooth_0(x=pos, y=y, bandwidth = bandwidth)[ix1:ix2]
   if(all(abs(ys) < zmin)){
@@ -50,21 +63,22 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   q0 <-rle( abs(ys) > z0 )
   p0 <- length(q0$lengths)
   ivls <- cbind(c(1, cumsum(q0$lengths)[-p0]+1)[q0$values], (cumsum(q0$lengths))[q0$values])
-
   max1 <- apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(ys)[iv[1]:iv[2]])})
+  max1 <- max1[max1 >= zmin]
 
   #Permutation test statistics and peak heights
-  max.perm <- apply(perm, MARGIN=2, FUN=function(l){
+  max.perm <- apply(perms, MARGIN=2, FUN=function(l){
     yy <- huber_stats2(dat[,-1], labs=l, s0=s0, maxit=maxit)
-    ksmooth_0(x=pos, y=yy, bandwidth = bandwidth)[ix1:ix2]
-    if(all(abs(ys) <= z0)) return(c())
-    q0 <-rle( abs(ys) > z0 )
+    yys <- ksmooth_0(x=pos, y=yy, bandwidth = bandwidth)[ix1:ix2]
+    if(all(abs(yys) <= z0)) return(c())
+    q0 <-rle( abs(yys) > z0 )
     p0 <- length(q0$lengths)
     ivls <- cbind(c(1, cumsum(q0$lengths)[-p0]+1)[q0$values], (cumsum(q0$lengths))[q0$values])
-    apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(ys)[iv[1]:iv[2]])})
+    apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(yys)[iv[1]:iv[2]])})
   })
   m <- sort(unlist(max.perm), decreasing=TRUE)
-  mx <- cbind(m, (1:length(m))/(n.perm*(stp-strt + 1)))
+  len <- stp-strt + 1
+  mx <- cbind(m, (1:length(m))/(n.perm*len))
 
   if(all(m < zmin)){
     mx <- cbind(zmin, 0)
@@ -73,32 +87,65 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   }
   file.name <- paste0(name.root, "_mx.RData")
 
-  R <- list("max1"=max1, "mx"=mx, "file"=dat.file)
+  R <- list("max1"=max1, "mx"=mx, "file"=dat.file, "nbp"=len, "ys"=ys, "pos"=pos)
   save(R, file=file.name)
   return(nrow(mx))
 }
 
+
+
+
+#' Find thresholds for a range of lambda values. Calculate FDR.
+#'@description Find thresholds for a range of lambda values. Calculate FDR.
+#'@param file.list List of files. Each file should contain a list of objects produced by
+#'discopony_maxes1
+#'@param zmin Lower bound on significance thresholds.
+#'@param nlam Number of lambda values to consider
+#' @return A list with items z, Robs, and fdr.
+#'@export
 discopony_choose_z <- function(file.list, zmin, nlam){
   log.lambda.min <- Inf
   log.lambda.max <- -Inf
+  nbp <- 0
   n.chunk <- 0
+  names <- c()
   for(f in file.list){
     R <- getobj(file.list)
     for(i in 1:length(R)){
-      log.lambda.min <- min(log.lambda.min, log10(R[[i]]$mx[,2][mx[,2] > 0]))
-      log.lambda.max <- max(log.lambda.max, log10(R[[i]]$mx[,2]))
+      log.lambda.min <- min(log.lambda.min, log10(R[[i]]$mx[,2][R[[i]]$mx[,2] > 0 & R[[i]]$mx[,1] >=zmin]))
+      log.lambda.max <- max(log.lambda.max, log10(R[[i]]$mx[,2][R[[i]]$mx[,1] >=zmin]))
+      names <- c(names, R[[i]]$file)
+      nbp <- nbp + R[[i]]$nbp
     }
     n.chunk <- n.chunk + length(R)
   }
   lams <- seq(log.lambda.min, log.lambda.max, length.out=nlam)
 
   n.seg <- length(file.list)
-  z <- matrix(nrow=nlam, ncol=n.seg+1)
-  z[,1] <- lams
+  z <- matrix(nrow=nlam, ncol=n.chunk+1)
+  Robs <- matrix(nrow=nlam, ncol=n.chunk + 1)
+  z[,1] <- Robs[, 1] <- lams
+  ct <- 1
   for(f in file.list){
-
+    R <- getobj(file.list)
+    for(i in 1:length(R)){
+      if(nrow(R[[i]]$mx)==1 & R[[i]]$mx[1, 2]==0){
+        z[, ct+1] = zmin
+        Robs[, ct + 1] = sum(R[[i]]$max1 >= zmin)
+      }else{
+        z[, ct + 1] <- approx(y=R[[i]]$mx[,1], x=log10(R[[i]]$mx[,2]),
+                              xout=lams, yright=zmin, yleft=Inf)$y
+        Robs[, ct + 1] <- sapply(z[, ct+1], FUN=function(zz){sum(R[[i]]$max1 > zz)})
+      }
+      ct = ct + 1
+    }
   }
   z <- data.frame(z)
-  names(z) <- c("lambda", paste0("z", 1:nseg))
-
+  names(z)<- c("lambda", names)
+  Robs <- data.frame(Robs)
+  names(Robs) <- c("lambda", names)
+  fdr <- (10^(Robs[,1]))*nbp/rowSums(Robs[, -1, drop=FALSE])
+  ret <- list("Robs"=Robs, "z"=z, "fdr"=fdr)
+  return(ret)
 }
+
