@@ -33,6 +33,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   #Read data
   name.root <- unlist(strsplit(dat.file, ".txt"))[1]
   dat <- read_delim(dat.file, delim=" ")
+  if(nrow(dat)==0) return(0)
   pos <- dat[,1]
   #Make sure the phenotype is sorted correctly
   X <- X[match(names(dat)[-1], X[,1]),  ]
