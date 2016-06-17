@@ -113,7 +113,7 @@ discopony_choose_z <- function(file.list, zmin, nlam){
   n.chunk <- 0
   names <- c()
   for(f in file.list){
-    R <- getobj(file.list)
+    R <- getobj(f)
     for(i in 1:length(R)){
       log.lambda.min <- min(log.lambda.min, log10(R[[i]]$mx[,2][R[[i]]$mx[,2] > 0 & R[[i]]$mx[,1] >=zmin]))
       log.lambda.max <- max(log.lambda.max, log10(R[[i]]$mx[,2][R[[i]]$mx[,1] >=zmin]))
@@ -130,7 +130,7 @@ discopony_choose_z <- function(file.list, zmin, nlam){
   z[,1] <- Robs[, 1] <- lams
   ct <- 1
   for(f in file.list){
-    R <- getobj(file.list)
+    R <- getobj(f)
     for(i in 1:length(R)){
       if(nrow(R[[i]]$mx)==1 & R[[i]]$mx[1, 2]==0){
         z[, ct+1] = zmin
