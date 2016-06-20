@@ -25,10 +25,12 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   n <- nrow(X)
 
   #Permuted phenotypes
-  set.seed(seed)
-  perms <- replicate(n=n.perm, expr = {
-    sample( X[,2], size=n, replace=FALSE)
-  })
+  if(n.perm > 0){
+    set.seed(seed)
+    perms <- replicate(n=n.perm, expr = {
+      sample( X[,2], size=n, replace=FALSE)
+    })
+  }
 
   #Read data
   name.root <- unlist(strsplit(dat.file, ".txt"))[1]
@@ -50,6 +52,8 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
     ix2 <- length(pos)
     stp <- pos[ix2]
   }
+  len <- stp-strt + 1
+
   #Calculate statistics
   y <- huber_stats2(Y=dat[, -1], labs=X[,2],s0=s0, maxit=maxit)
   ys <- ksmooth_0(x=pos, y=y, bandwidth = bandwidth)[ix1:ix2]
@@ -66,6 +70,10 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   ivls <- cbind(c(1, cumsum(q0$lengths)[-p0]+1)[q0$values], (cumsum(q0$lengths))[q0$values])
   max1 <- apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(ys)[iv[1]:iv[2]])})
   max1 <- max1[max1 >= zmin]
+  if(n.perm==0){
+    R <- list("max1"=max1,"file"=dat.file, "nbp"=len, "ys"=ys, "pos"=pos)
+    return(R)
+  }
 
   #Permutation test statistics and peak heights
   cat("Calculating permutation peak heights.\n")
@@ -79,7 +87,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
     apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(yys)[iv[1]:iv[2]])})
   })
   m <- sort(unlist(max.perm), decreasing=TRUE)
-  len <- stp-strt + 1
+
   mx <- cbind(m, (1:length(m))/(n.perm*len))
 
   if(all(m < zmin)){
