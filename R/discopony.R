@@ -10,6 +10,8 @@
 #'@param z0 Reference level for merging
 #'@param strt Region start base pair (may not be the same as where dat.file starts)
 #'@param stp Region stop base pair.
+#'@param out.file Output file (optional)
+#'@param max1.file File with data from running with n.perm=0
 #'@param seed Set a seed for running permutations (Required)
 #'@param n.perm Number of permutations
 #'@param z0 Reference level for merging
@@ -19,6 +21,7 @@
 #'@export
 discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
                       seed, n.perm, strt=NULL, stp=NULL,
+                      out.file=NULL, max1.file=NULL,
                       z0=zmin*0.3, bandwidth=50, maxit=50){
 
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
@@ -55,8 +58,13 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   len <- stp-strt + 1
 
   #Calculate statistics
-  y <- huber_stats2(Y=dat[, -1], labs=X[,2],s0=s0, maxit=maxit)
-  ys <- ksmooth_0(x=pos, y=y, bandwidth = bandwidth)[ix1:ix2]
+  if(is.null(max1.file)){
+    y <- huber_stats2(Y=dat[, -1], labs=X[,2],s0=s0, maxit=maxit)
+    ys <- ksmooth_0(x=pos, y=y, bandwidth = bandwidth)[ix1:ix2]
+  }else{
+    m1 <- getobj(max1.file)
+    ys <- m1$ys
+  }
   if(all(abs(ys) < zmin)){
     cat("No clusters exceed ", zmin, "\n")
     #unlink(file.name)
@@ -71,7 +79,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   max1 <- apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(ys)[iv[1]:iv[2]])})
   max1 <- max1[max1 >= zmin]
   if(n.perm==0){
-    R <- list("max1"=max1,"file"=dat.file, "nbp"=len, "ys"=ys, "pos"=pos)
+    R <- list("max1"=max1,"file"=dat.file, "nbp"=len, "ys"=ys, "pos"=pos, "z0"=z0, "zmin"=zmin)
     return(R)
   }
 
@@ -97,10 +105,15 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   }else{
     mx <- mx[m >= zmin,]
   }
-  file.name <- paste0(name.root, "_mx.RData")
 
-  R <- list("max1"=max1, "mx"=mx, "file"=dat.file, "nbp"=len, "ys"=ys, "pos"=pos)
-  save(R, file=file.name)
+  if(is.null(out.file)){
+    out.file <- paste0(name.root, "_mx.RData")
+  }
+
+  R <- list("max1"=max1, "mx"=mx, "file"=dat.file,
+            "z0"=z0, "zmin"=zmin,
+            "nbp"=len, "ys"=ys, "pos"=pos)
+  save(R, file=out.file)
   return(nrow(mx))
 }
 
