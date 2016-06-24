@@ -26,7 +26,7 @@ tpr_nfp <- function(signal, discoveries=NULL, x=NULL, z=NULL, z0=NULL){
     R <- c("tpr"=NA, "nfp"=nrow(discoveries), "ntp"=0, "fdp"=1)
     return(R)
   }
-  if(nrow(discoveries)==1){
+  if(nrow(discoveries)==0){
     R <- c("tpr"=0, "nfp"=0, "ntp"=0, "fdp"=0)
     return(R)
   }
