@@ -28,7 +28,7 @@ rates_from_jade_sim <- function(data.file, profiles, n.perm=0, seed=NULL, huber.
   signal <- Intervals(signal)
 
   stats <- array(dim=c(3, n, 1+n.perm))
-  rates <- array(dim=c(3, n, 4))
+  rates <- array(dim=c(3, 50, 4))
   cl <- list()
   for(i in 1:length(stat.names)){
     if(stat.names[i]=="Poisson") stats[i, , ] <- get_stats_pois(f$Y , labs, perms, s0=s0[i])
