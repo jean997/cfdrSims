@@ -52,6 +52,7 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
   }else{
     stats <- NULL
   }
+  cl <- list()
   for(i in 1:length(stat.names)){
     if(stat.names[i]=="Poisson") Z <- get_stats_pois(D$dat , labs, perms, s0=s0[i])
       else if(stat.names[i]=="Huber") Z <- get_stats_huber2(D$dat, labs, perms, s0=s0[i], maxit=huber.maxit)
@@ -60,7 +61,7 @@ run_cfdr_sims1 <- function(type.sequence, sample.size=c(20, 20),
     if(save.data) stats[i, , ] <- Z
     if(!is.null(file.name)) save(D, stats, file=temp.name)
 
-    cl <- get_clusters(Z, 1:p, bw=20, nlam=50, level=level)
+    cl[[i]] <- get_clusters(Z, 1:p, bw=20, nlam=50, level=level)
 
     for(j in 1:b){
       if(nrow(cl$clust[[j]])> 0){
