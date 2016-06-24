@@ -10,7 +10,6 @@
 #'@param return.z if FALSE only return maxes list
 #'@param keep.lists If return.z=TRUE also return maxes list
 #'@param except Region to remove when calculating false cluster rate (i.e. signal region)
-#'@param mx Previous maxes list to append
 #' @return If return.z =TRUE, return a matrix that is nlam x (nseg + 1). The first column is log.lambda.
 #' Subsequent columns give the threshold for each segment. If keep.lists=TRUE or return.z=FALSE (also) return
 #' a list of cluster peaks for each segment. mx has length nseg and each element has two columns - peak height and
@@ -18,7 +17,7 @@
 #'@export
 choose_z_even <- function(perm.stats, nlam, bw, pos, z0, x.range=NULL,
                           max.log.lam=NULL, seg.ends=NULL, return.z=TRUE,
-                          keep.lists=FALSE, except=NULL, mx=NULL){
+                          keep.lists=FALSE, except=NULL){
   if(is.null(seg.ends)){
     seg.ends <- c(nrow(perm.stats))
   }
@@ -37,8 +36,6 @@ choose_z_even <- function(perm.stats, nlam, bw, pos, z0, x.range=NULL,
     }
   }
 
-  if(is.null(mx)) mx <- list()
-  k <- length(mx)
   strt <- 1
   for(i in 1:nseg){
     cat(i, " ")
@@ -54,7 +51,7 @@ choose_z_even <- function(perm.stats, nlam, bw, pos, z0, x.range=NULL,
       }
     })
     m <- sort(unlist(maxes), decreasing=TRUE)
-    mx[[i+k]] <- cbind(m, (1:length(m))/(nperm*(seg.ends[i]-strt + 1)))
+    mx[[i]] <- cbind(m, (1:length(m))/(nperm*(seg.ends[i]-strt + 1)))
     strt <- seg.ends[i] + 1
   }
   cat("\n")
