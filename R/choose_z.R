@@ -37,6 +37,7 @@ choose_z_even <- function(perm.stats, nlam, bw, pos, z0, x.range=NULL,
   }
 
   strt <- 1
+  mx <- list()
   for(i in 1:nseg){
     cat(i, " ")
     maxes <- apply(perm.smooth[strt:seg.ends[i],], MARGIN=2, FUN=function(xs){
