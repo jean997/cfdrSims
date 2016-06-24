@@ -47,7 +47,7 @@ rates_from_jade_sim <- function(data.file, profiles, n.perm=0, seed=NULL, huber.
 
   R <- list("ys"=ys, "rates"=rates,
             "stat.names"=stat.names, "cl"=cl,
-            "file"=dat.file, "stats"=stats)
+            "file"=data.file, "stats"=stats)
   return(R)
 
 }
