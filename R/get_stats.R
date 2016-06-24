@@ -53,7 +53,7 @@ get_stats_huber<- function(dat, labs, perm_labs,
 #'The next columns are for the permutation labels
 #'@export
 get_stats_huber2<- function(dat, labs, perm_labs, s0=0, maxit=50){
-  z1 <- cfdrSims:::huber_stats2(Y=dat, labs=labs, s0=s0)
+  z1 <- cfdrSims:::huber_stats2(Y=dat, labs=labs, s0=s0, maxit=maxit)
   if(is.null(perm_labs)) return(z1)
   z <- apply(perm_labs, MARGIN=2, FUN=function(l){
     cfdrSims:::huber_stats2(dat, labs=l, s0=s0, maxit=maxit)
