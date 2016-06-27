@@ -221,8 +221,40 @@ discopony_pull_regions <- function(results.file, thresh){
     ivls[j:(j+nn-1), c(3, 4)] <- as.matrix(iv)
     j <- j + nn
   }
+
+  ivls <- data.frame(ivls, stringsAsFactors=FALSE)
+  names(ivls) <- c("chr", "chunk", "start", "stop", "z")
+  for(j in 2:5) ivls[,j] <- as.numeric(ivls[,j])
+  ivls$length <- ivls$stop-ivls$start + 1
   return(list("df"=df, "ivls"=ivls))
 }
+
+
+dnase1_test_windows <- function(dat.file, pheno.file, s0=0, maxit=50){
+  dat <- read_delim(dat.file, delim=" ")
+  X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
+  X <- X[match(names(dat)[c(-1, -2)], X[,1]),  ]
+  labs <- X[,2]
+  wins <- unique(dat$win)
+  res <- matrix(nrow=length(unique(dat$win)), ncol=6)
+  #Window beta se stat pval start stop
+  for(i in 1:length(wins)){
+    cat(i, " ")
+    res[i, 1] <- w <- wins[i]
+    y <- colSums(dat[dat$win==w, c(-1, -2)])
+    f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
+    res[i, 2] <- b1 <- summary(f)$coefficients[2, 1]
+    res[i, 3] <- s <- summary(f)$coefficients[2, 2]
+    res[i, 4] <- b1/(s + s0)
+    pos <- dat$pos[dat$win==w]
+    res[i, 5] <- min(pos)
+    res[i, 6] <- max(pos)
+  }
+  cat("\n")
+}
+
+
+
 
 
 strsplit_helper <- function(list, split, field, fixed=FALSE){
