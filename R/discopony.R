@@ -230,7 +230,7 @@ discopony_pull_regions <- function(results.file, thresh){
 }
 
 
-dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
+dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
   normp <- function(x){
     if(x < 0) return(2*pnorm(x))
     return(2*pnorm(x, lower.tail=FALSE))
@@ -265,7 +265,11 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
   X <- X[match(names(dat)[c(-1, -2)], X[,1]),  ]
   labs <- X[,2]
   wins <- unique(dat$win)
-
+  wins <- as.numeric(wins)
+  if(!is.null(win.range)){
+    wins <- wins[wins >= win.range[1] & wins <= win.range[2]]
+    dat <- dat[dat$win %in% wins]
+  }
   res <- matrix(nrow=length(unique(dat$win)), ncol=9)
   #Window start stop HuberStat HuberP PoisStat PoisP Tstat TP
   for(i in 1:length(wins)){
