@@ -251,7 +251,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
     return(c(beta1/s1, tp(beta1/s1, df=sum(n)-2)))
   }
   huber_reg <- function(y, labs){
-    f <- rlm(y~labs, psi=psi.huber, k=1.345, scale.est="Huber", maxit=maxit)
+    f <- rlm(y~labs, psi=psi.huber, k=1.345, scale.est="Huber", maxit=50)
     b1 <- summary(f)$coefficients[2, 1]
     s <- summary(f)$coefficients[2, 2]
     return(c(b1/s, normp(b1/s)))
@@ -274,7 +274,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
     pos <- dat$pos[dat$win==w]
     res[i, 2] <- min(pos)
     res[i, 3] <- max(pos)
-    y <- colSums(dat[dat$win==w, c(-1, -2)])
+    y <- as.numeric(colSums(dat[dat$win==w, c(-1, -2)]))
 
     res[i, 4:5] <- huber_reg(y, labs)
     res[i, 6:7] <- pois_reg(y, labs)
