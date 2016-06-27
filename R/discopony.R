@@ -274,7 +274,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
     y <- as.numeric(x[2:26])
     c(x[1], x[27], x[28], huber_reg(y, labs), pois_reg(y, labs), tt(y, labs))
   })
-  res <- data.frame(res)
+  res <- data.frame(t(res))
   names(res) <- c("Window", "Start", "Stop", "HuberStat", "HuberP", "PoisStat", "PoisP", "TStat", "TP")
   cat("\n")
   return(res)
