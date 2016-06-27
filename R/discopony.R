@@ -205,7 +205,7 @@ discopony_pull_regions <- function(results.file, thresh){
   ivls[,2] <- rep(df$chunk, df$R)
   ivls[,5] <- rep(df$z, df$R)
   j <- 1
-  c <- df$chr[1]
+  c <- ""
   for(i in 1:nrow(df)){
     if(df$chr[i]!=c){
       c <- df$chr[i]
