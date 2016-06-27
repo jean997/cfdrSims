@@ -260,7 +260,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
     f <- t.test(y~labs)
     return(as.vector(c(f$statistic, f$p.value)))
   }
-  dat <- getobj(dat.file, delim=" ")
+  dat <- getobj(dat.file)
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
   X <- X[match(names(dat)[2:26], X[,1]),  ]
   labs <- X[,2]
