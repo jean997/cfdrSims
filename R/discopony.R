@@ -174,3 +174,59 @@ discopony_choose_z <- function(file.list, zmin, nlam){
   return(ret)
 }
 
+#This function assumes a v. specific file name structure
+discopony_pull_regions <- function(results.file, thresh){
+  Z <- getobj(results.file)
+  if(all(Z$fdr > thresh)){
+    cat("No intervals achieve significance")
+    return(0)
+  }
+  ix <- max(which(Z$fdr <= thresh))
+  R <- as.numeric(Z$Robs[ix,-1])
+  z <- as.numeric(Z$z[ix, -1])
+  file.names = names(Z$Robs)[-1]
+
+  df <- data.frame(cbind(z[R > 0],  R[R > 0]), stringsAsFactors = FALSE)
+  names(df) <- c("z", "R")
+  df$file <- file.names[R > 0]
+
+  ivls <- matrix(nrow=sum(df$R), ncol=5)
+  #Chr chunk start stop z
+  cat(sum(df$R), " intervals in ", nrow(df), " chunks", "\n")
+
+  df$chr <- strsplit_helper(df$file, "/", 1, fixed=TRUE)
+  df$chunk <- strsplit_helper(df$file, ".txt", 1, fixed=TRUE )
+  df$chunk <- strsplit_helper(df$chunk, "chunk", 2, fixed=TRUE)
+  o <- order(df$chr, as.numeric(df$chunk))
+  df <- df[o, ]
+
+  #One row per interval
+  ivls[,1] <- rep(df$chr, df$R)
+  ivls[,2] <- rep(df$chunk, df$R)
+  ivls[,5] <- rep(df$z, df$R)
+  j <- 1
+  c <- df$chr[1]
+  for(i in 1:nrow(df)){
+    if(df$chr[i]!=c){
+      c <- df$chr[i]
+      cat(c, "..")
+      fn <- paste0(c, "/", c, "_maxes.RData")
+      ff <- getobj(fn)
+      my.names <- sapply(ff, FUN=function(f){f$file})
+    }
+    k <- which(my.names==df$file[i])
+    iv <-rle( abs(ff[[k]]$ys) > df$z[i] )
+    n_iv <- length(iv$lengths)
+    nn <- sum(iv$values)
+    ivls[j:(j+nn-1), 3] <- ff[[k]]$pos[c(1, cumsum(iv$lengths)[-n_iv]+1)[iv$values]]
+    ivls[j:(j+nn-1), 4] <- ff[[k]]$pos[(cumsum(iv$lengths))[iv$values]]
+    j <- j + nn
+  }
+  return(list("df"=df, "ivls"=ivls))
+}
+
+
+strsplit_helper <- function(list, split, field, fixed=FALSE){
+  x <- unlist(lapply(list, FUN=function(x){
+    unlist(strsplit(x, split, fixed=fixed))[field]}))
+}
