@@ -230,26 +230,58 @@ discopony_pull_regions <- function(results.file, thresh){
 }
 
 
-dnase1_test_windows <- function(dat.file, pheno.file, s0=0, maxit=50){
+dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
+  normp <- function(x){
+    if(x < 0) return(2*pnorm(x))
+    return(2*pnorm(x, lower.tail=FALSE))
+  }
+  tp <- function(x, df){
+    if(x < 0) return(2*pt(x, df=df))
+    return(2*pt(x, df=df, lower.tail=FALSE))
+  }
+  pois_reg <- function(y, labs, zero.val=1e-11){
+    cts <- as.vector( by(y, labs, FUN=function(z){max(zero.val, sum(z))}))
+    n <- as.vector( by(labs, labs, FUN=length))
+    #poisson
+    beta1 <- log(cts[2]/n[2])-log(cts[1]/n[1])
+    mu = rep(cts[1]/n[1], sum(n))
+    mu[labs==1] = cts[2]/n[2]
+    phi = 1/(sum(n) - 2)* sum( (y-mu)^2/mu)
+    s1 = sqrt(phi)*sqrt(sum(1/cts))
+    return(c(beta1/s1, tp(beta1/s1, df=sum(n)-2)))
+  }
+  huber_reg <- function(y, labs){
+    f <- rlm(y~labs, psi=psi.huber, k=1.345, scale.est="Huber", maxit=maxit)
+    b1 <- summary(f)$coefficients[2, 1]
+    s <- summary(f)$coefficients[2, 2]
+    return(c(b1/s, normp(beta1/s)))
+  }
+  tt <- function(y, labs){
+    f <- t.test(y~labs)
+    return(as.vector(c(f$statistic, f$p.value)))
+  }
   dat <- read_delim(dat.file, delim=" ")
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
   X <- X[match(names(dat)[c(-1, -2)], X[,1]),  ]
   labs <- X[,2]
   wins <- unique(dat$win)
-  res <- matrix(nrow=length(unique(dat$win)), ncol=6)
-  #Window beta se stat pval start stop
+
+  res <- matrix(nrow=length(unique(dat$win)), ncol=9)
+  #Window start stop HuberStat HuberP PoisStat PoisP Tstat TP
   for(i in 1:length(wins)){
     cat(i, " ")
     res[i, 1] <- w <- wins[i]
-    y <- colSums(dat[dat$win==w, c(-1, -2)])
-    f <- rlm(y~labs, psi=psi.huber, k=1.345, scale.est="Huber", maxit=maxit)
-    res[i, 2] <- b1 <- summary(f)$coefficients[2, 1]
-    res[i, 3] <- s <- summary(f)$coefficients[2, 2]
-    res[i, 4] <- b1/(s + s0)
     pos <- dat$pos[dat$win==w]
-    res[i, 5] <- min(pos)
-    res[i, 6] <- max(pos)
+    res[i, 2] <- min(pos)
+    res[i, 3] <- max(pos)
+    y <- colSums(dat[dat$win==w, c(-1, -2)])
+
+    res[i, 4:5] <- huber_reg(y, labs)
+    res[i, 6:7] <- pois_reg(y, labs)
+    res[i, 8:9] <- tt(y, labs)
   }
+  res <- data.frame(res)
+  names(res) <- c("Window", "Start", "Stop", "HuberStat", "HuberP", "PoisStat", "PoisP", "TStat", "TP")
   cat("\n")
   return(res)
 }
