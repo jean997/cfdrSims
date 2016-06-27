@@ -251,6 +251,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, s0=0, maxit=50){
     res[i, 6] <- max(pos)
   }
   cat("\n")
+  return(res)
 }
 
 
