@@ -242,7 +242,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, s0=0, maxit=50){
     cat(i, " ")
     res[i, 1] <- w <- wins[i]
     y <- colSums(dat[dat$win==w, c(-1, -2)])
-    f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
+    f <- rlm(y~labs, psi=psi.huber, k=1.345, scale.est="Huber", maxit=maxit)
     res[i, 2] <- b1 <- summary(f)$coefficients[2, 1]
     res[i, 3] <- s <- summary(f)$coefficients[2, 2]
     res[i, 4] <- b1/(s + s0)
