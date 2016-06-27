@@ -215,11 +215,10 @@ discopony_pull_regions <- function(results.file, thresh){
       my.names <- sapply(ff, FUN=function(f){f$file})
     }
     k <- which(my.names==df$file[i])
-    iv <-rle( abs(ff[[k]]$ys) > df$z[i] )
-    n_iv <- length(iv$lengths)
-    nn <- sum(iv$values)
-    ivls[j:(j+nn-1), 3] <- ff[[k]]$pos[c(1, cumsum(iv$lengths)[-n_iv]+1)[iv$values]]
-    ivls[j:(j+nn-1), 4] <- ff[[k]]$pos[(cumsum(iv$lengths))[iv$values]]
+    iv <- name_clusters_merged(x=ff[[k]]$ys, z=df$z[i], z0=0.3*0.9)
+    nn <- nrow(iv)
+    stopifnot(nn==df$R[i])
+    ivls[j:(j+nn-1), c(3, 4)] <- as.matrix(iv)
     j <- j + nn
   }
   return(list("df"=df, "ivls"=ivls))
