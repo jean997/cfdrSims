@@ -260,30 +260,20 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
     f <- t.test(y~labs)
     return(as.vector(c(f$statistic, f$p.value)))
   }
-  dat <- read_delim(dat.file, delim=" ")
+  dat <- getobj(dat.file, delim=" ")
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
-  X <- X[match(names(dat)[c(-1, -2)], X[,1]),  ]
+  X <- X[match(names(dat)[2:26], X[,1]),  ]
   labs <- X[,2]
-  wins <- unique(dat$win)
-  wins <- as.numeric(wins)
+
   if(!is.null(win.range)){
-    wins <- wins[wins >= win.range[1] & wins <= win.range[2]]
     dat <- dat[dat$win %in% wins,]
   }
-  res <- matrix(nrow=length(unique(dat$win)), ncol=9)
-  #Window start stop HuberStat HuberP PoisStat PoisP Tstat TP
-  for(i in 1:length(wins)){
-    cat(i, " ")
-    res[i, 1] <- w <- wins[i]
-    pos <- dat$pos[dat$win==w]
-    res[i, 2] <- min(pos)
-    res[i, 3] <- max(pos)
-    y <- as.numeric(colSums(dat[dat$win==w, c(-1, -2)]))
 
-    res[i, 4:5] <- huber_reg(y, labs)
-    res[i, 6:7] <- pois_reg(y, labs)
-    res[i, 8:9] <- tt(y, labs)
-  }
+  #Window start stop HuberStat HuberP PoisStat PoisP Tstat TP
+  res <- apply(dat, MARGIN=1, FUN=function(x){
+    y <- as.numeric(x[2:26])
+    c(x[1], x[27], x[28], huber_reg(y, labs), pois_reg(y, labs), tt(y, labs))
+  })
   res <- data.frame(res)
   names(res) <- c("Window", "Start", "Stop", "HuberStat", "HuberP", "PoisStat", "PoisP", "TStat", "TP")
   cat("\n")
