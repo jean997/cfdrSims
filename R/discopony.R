@@ -268,7 +268,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
   wins <- as.numeric(wins)
   if(!is.null(win.range)){
     wins <- wins[wins >= win.range[1] & wins <= win.range[2]]
-    dat <- dat[dat$win %in% wins]
+    dat <- dat[dat$win %in% wins,]
   }
   res <- matrix(nrow=length(unique(dat$win)), ncol=9)
   #Window start stop HuberStat HuberP PoisStat PoisP Tstat TP
