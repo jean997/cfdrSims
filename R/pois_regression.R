@@ -7,7 +7,6 @@
 #'@return A length p vector of statistics
 #'@export
 pois_regression <- function(Y, labs, s0, zero.val=1e-11){
-
   B <- apply(Y, MARGIN=1, FUN=function(y){
     c0 <- max(zero.val, sum(y[labs==0]))
     c1 <- max(zero.val, sum(y[labs==1]))
@@ -21,6 +20,5 @@ pois_regression <- function(Y, labs, s0, zero.val=1e-11){
     return(beta1/(s1+s0))
   })
   return(B)
-
 }
 
