@@ -218,7 +218,8 @@ discopony_pull_regions <- function(results.file, thresh){
     iv <- name_clusters_merged(x=ff[[k]]$ys, z=df$z[i], z0=0.3*0.9)
     nn <- nrow(iv)
     stopifnot(nn==df$R[i])
-    ivls[j:(j+nn-1), c(3, 4)] <- as.matrix(iv)
+    iv <- matrix(ff[[k]]$pos[as.matrix(iv)], ncol=2, byrow=FALSE)
+    ivls[j:(j+nn-1), c(3, 4)] <- iv
     j <- j + nn
   }
 
