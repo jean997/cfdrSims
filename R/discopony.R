@@ -195,9 +195,10 @@ discopony_pull_regions <- function(results.file, thresh){
   cat(sum(df$R), " intervals in ", nrow(df), " chunks", "\n")
 
   df$chr <- strsplit_helper(df$file, "/", 1, fixed=TRUE)
+  chrnum <- as.numeric(strsplit_helper(df$chr, "chr", 2))
   df$chunk <- strsplit_helper(df$file, ".txt", 1, fixed=TRUE )
   df$chunk <- strsplit_helper(df$chunk, "chunk", 2, fixed=TRUE)
-  o <- order(df$chr, as.numeric(df$chunk))
+  o <- order(chrnum, as.numeric(df$chunk))
   df <- df[o, ]
 
   #One row per interval
