@@ -6,7 +6,7 @@
 \usage{
 choose_z_even(perm.stats, nlam, bw, pos, z0, x.range = NULL,
   max.log.lam = NULL, seg.ends = NULL, return.z = TRUE,
-  keep.lists = FALSE, except = NULL, mx = NULL)
+  keep.lists = FALSE, except = NULL)
 }
 \arguments{
 \item{perm.stats}{p x B matrix of permutation statistics}
@@ -28,8 +28,6 @@ choose_z_even(perm.stats, nlam, bw, pos, z0, x.range = NULL,
 \item{keep.lists}{If return.z=TRUE also return maxes list}
 
 \item{except}{Region to remove when calculating false cluster rate (i.e. signal region)}
-
-\item{mx}{Previous maxes list to append}
 }
 \value{
 If return.z =TRUE, return a matrix that is nlam x (nseg + 1). The first column is log.lambda.
