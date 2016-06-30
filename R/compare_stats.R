@@ -64,8 +64,9 @@ compare_stats <- function(group1.func, group2.func, n.rep=1000, sample.size=c(50
   return(list("p"=ps, "beta"=betas, "Y"=Y))
 }
 
-
-run_compare <- function(alphas=c(0.025, 0.05, 0.1), sample.size=c(50, 50), n.rep=500){
+#Seed 209601188
+run_compare <- function(seed=209601188, alphas=c(0.025, 0.05, 0.1), sample.size=c(50, 50), n.rep=500){
+  set.seed(seed)
   t1err.tab <- list()
   power.tab <- list()
   ZE <- list()
@@ -138,7 +139,7 @@ run_compare <- function(alphas=c(0.025, 0.05, 0.1), sample.size=c(50, 50), n.rep
     lambda <- sample(c(1.5, 3, 7, 15), prob =c(0.55, 0.3, 0.1, 0.05), size=n, replace=TRUE)
     rpois(n=n, lambda=lambda)}
   g2 <- function(n){
-    lambda <- sample(c(1.5, 3, 7, 15), prob =c(0.2, 0.5, 0.3, 0.1), size=n, replace=TRUE)
+    lambda <- sample(c(1.5, 3, 7, 15), prob =c(0.2, 0.45, 0.25, 0.1), size=n, replace=TRUE)
     rpois(n=n, lambda=lambda)}
   ZD[[i]] <- compare_stats(g1, g2, n.rep, sample.size)
   ZE[[i]] <- compare_stats(g1, g1, n.rep, sample.size)
