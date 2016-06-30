@@ -254,6 +254,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
     f <- rlm(y~labs, psi=psi.huber, k=1.345, scale.est="Huber", maxit=50)
     b1 <- summary(f)$coefficients[2, 1]
     s <- summary(f)$coefficients[2, 2]
+    if(is.na(s)) return(c(0, 1))
     return(c(b1/s, normp(b1/s)))
   }
   tt <- function(y, labs){
