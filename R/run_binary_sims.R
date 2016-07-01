@@ -54,7 +54,7 @@ run_bin <- function(seed, prefix, n, n.perm=500, waveQTL_loc="~/.local/bin/WaveQ
 }
 
 #'@export
-run_bin2 <- function(seed, prefix, n){
+run_bin2 <- function(seed, prefix, n, n.perm=500, waveQTL_loc="~/.local/bin/WaveQTL"){
   file.start <- paste0(prefix, "_", n)
   x <- rep(c(0, 1), each=15)
   g1 = function(x){return(list("ht"=5, "assoc"=0))}
