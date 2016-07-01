@@ -1,3 +1,5 @@
+#'@import dplyr
+
 #'@export
 run_bin <- function(seed, prefix, n, n.perm=500, waveQTL_loc="~/.local/bin/WaveQTL"){
   file.start <- paste0(prefix, "_", n)

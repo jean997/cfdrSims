@@ -12,20 +12,18 @@ window_test(windows, dat, pos, x, signal, huber.maxit = 50, s0 = c(0, 0, 0),
 
 \item{dat}{p x n matrix of data}
 
+\item{pos}{Positions}
+
 \item{x}{treatment status of each sample (length n)}
+
+\item{signal}{}
 
 \item{s0}{}
 
-\item{type.sequence}{Vector of integers in 1:6 giving the type of each subregion.}
-
-\item{stat.names}{Length k. Contains elements of "Poisson", "Huber", "t-test"}
+\item{level}{}
 }
 \value{
-A list with elements:
-\describe{
-\item{\code{stats}}{ matrix k by q giving statistic for each bin }
-\item{\code{rate_list}}{list of length k. Each element is a three column matrix with columns fdp, tp, fp}
-}
+A list
 }
 \description{
 Calculate test statistics binning over aupplied regions
