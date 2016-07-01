@@ -48,7 +48,7 @@ get_clusters <- function(stats, pos, bw, nlam, lambda.max=NULL,
       clust[[j]] <-Intervals()
     }
   }
-  R <- list("R" = R,  "bw"=bw, "clust"=clust, "x"=x,
+  R <- list("R" = R,  "bw"=bw, "clust"=clust, "x"=x, "fdr"=fdr,
             "z"=z, "z0"=z0, "zsel"=zsel)
   return(R)
 }
