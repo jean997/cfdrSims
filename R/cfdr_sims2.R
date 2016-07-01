@@ -11,7 +11,7 @@
 #'@param n.perms Number of permutations to use to estimate lambda.
 #'@param s0 Vector of length 3 giving additional variance to add to Poisson, Huber and t-test statistics.
 #'@export
-cfdr_sims2 <- function(x, pk.ht.funcs, type.sequence,
+cfdr_sims2 <- function(x, pk.ht.funcs, type.sequence, n.seg=NULL,
                            seed=NULL, n.perms=500, s0=c(0, 0, 0),
                            level=c(0.02, 0.05, 0.1, 0.2),
                            save.data=FALSE, huber.maxit=50,
@@ -36,10 +36,20 @@ cfdr_sims2 <- function(x, pk.ht.funcs, type.sequence,
   stopifnot(all(sapply(pk.ht.funcs, FUN=class) == "function"))
 
   r <- length(type.sequence)
-
   p <- 200 * length(type.sequence)
   b <- length(level)
 
+  #Segment Ends
+  seg.ends=list()
+  seg.ends[[1]] <- c(p)
+  k <- 1
+  if(!is.null(n.seg)){
+    for(i in 1:length(n.seg)){
+      stopifnot(p %% n.seg == 0)
+      seg.ends[[i+1]] <- seq(p/n.seg[i], p, length.out=n.seg[i])
+    }
+    k <- k + length(n.seg)
+  }
 
   #Build signal intervals object
   S <- cfdrSims:::get_signal2(pk.ht.funcs, type.sequence)
@@ -48,14 +58,16 @@ cfdr_sims2 <- function(x, pk.ht.funcs, type.sequence,
     sample( x, size=length(x), replace=FALSE)
   })
 
-  n.f.disc <- n.t.disc <- tpr <-  array(0, dim=c(3, b))
+  n.f.disc <- n.t.disc <- tpr <-  array(0, dim=c(3, b, k))
 
+  #Generage Data
   P <- sapply(x, FUN=function(xx){
     ht.list = lapply(type.sequence, FUN=function(t){pk.ht.funcs[[t]](xx)$ht})
     yy <- unlist(lapply(ht.list, FUN=cfdrSims:::gen_profile))
     return(yy)
   })
-  D <- apply(P, MARGIN=2, FUN=function(m){rpois(n=nrow(D), lambda=m)})
+  D <- apply(P, MARGIN=2, FUN=function(m){rpois(n=nrow(P), lambda=m)})
+
   if(!is.null(file.name)) save(D, file=temp.name)
   if(save.data){
     stats <- array(dim=c(3, p, 1+n.perms))
@@ -75,22 +87,27 @@ cfdr_sims2 <- function(x, pk.ht.funcs, type.sequence,
 
     if(save.data) stats[i, , ] <- Z
     if(!is.null(file.name)) save(D, stats, file=temp.name)
+    cl[[i]] <- list()
+    for(k in 1:length(seg.ends)){
+      cl[[i]][[k]] <- get_clusters(Z, 1:p, bw=20, nlam=50,
+                                   level=level, seg.ends=seg.ends[[k]])
 
-    cl[[i]] <- get_clusters(Z, 1:p, bw=20, nlam=50, level=level)
-
-    for(j in 1:b){
-      if(nrow(cl[[i]]$clust[[j]])> 0){
-        rates <- cfdrSims:::tpr_nfp(Intervals(S$signal), discoveries=cl[[i]]$clust[[j]])
-        n.t.disc[i, j] <- rates["ntp"]
-        n.f.disc[i, j] <- rates["nfp"]
+      for(j in 1:b){
+        if(nrow(cl[[i]][[k]]$clust[[j]])> 0){
+          rates <- cfdrSims:::tpr_nfp(Intervals(S$signal),
+                                      discoveries=cl[[i]][[k]]$clust[[j]])
+          n.t.disc[i, j, k] <- rates["ntp"]
+          n.f.disc[i, j, k] <- rates["nfp"]
+          tpr[i, j, k] <- rates["tpr"]
+        }
       }
     }
     cat("\n")
   }
 
   if(!save.data) D <- NULL
-  R <- list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc,
-            "stat.names"=stat.names, "cl"=cl,
+  R <- list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc, "tpr"=tpr,
+            "stat.names"=stat.names, "cl"=cl, "signal"=S,
             "type.sequence"=type.sequence, "x"=x, "pk.pk.ht.funcs"=pk.ht.funcs,
             "dat"=D, "stats"=stats, "seed"=seed)
   if(!is.null(file.name)){
