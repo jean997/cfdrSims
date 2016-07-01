@@ -52,18 +52,18 @@ lump_intervals <- function(n.lumps=1, total.width=200, peak.base=20, n.sep=2){
 get_signal2 <- function(pk.ht.funcs, type.sequence, total.width=200, peak.base=20, n.sep=2){
   signal.ivls <- list()
   peak.ivls <- list()
-  i <- 1
-  for(f in pk.ht.funcs){
-    assoc <- f(0)$assoc
+
+  for(i in 1:length(pk.ht.funcs)){
+    assoc <- pk.ht.funcs[[i]](0)$assoc
     peak.ivls[[i]] <- iv <-  lump_intervals(n.lumps=length(assoc),
                                      total.width = total.width, peak.base=peak.base, n.sep=n.sep)
     if(all(assoc==0)){
       signal.ivls[[i]] <- matrix(nrow=0, ncol=2)
       next
     }
-    iv <- iv[assoc==1, ]
+    iv <- iv[assoc==1, , drop=FALSE]
     signal.ivls[[i]] <- iv
-    i <- i+1
+
   }
   ct = 0
   signal <- peaks <-  matrix(nrow=0, ncol=2)
