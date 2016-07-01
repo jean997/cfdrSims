@@ -4,9 +4,9 @@
 \alias{cfdr_sims2}
 \title{Run Simulations}
 \usage{
-cfdr_sims2(x, pk.ht.funcs, type.sequence, seed = NULL, n.perms = 500,
-  s0 = c(0, 0, 0), level = c(0.02, 0.05, 0.1, 0.2), save.data = FALSE,
-  huber.maxit = 50, file.name = NULL)
+cfdr_sims2(x, pk.ht.funcs, type.sequence, n.seg = NULL, seed = NULL,
+  n.perms = 500, s0 = c(0, 0, 0), level = c(0.02, 0.05, 0.1, 0.2),
+  save.data = FALSE, huber.maxit = 50, file.name = NULL)
 }
 \arguments{
 \item{x}{Trait}

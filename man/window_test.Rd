@@ -4,19 +4,19 @@
 \alias{window_test}
 \title{Test simulations in windows}
 \usage{
-window_test(windows, type.sequence, dat, labs, s0 = c(0, 0, 0),
-  stat.names = c("Poisson", "Huber", "t-test"))
+window_test(windows, dat, pos, x, signal, huber.maxit = 50, s0 = c(0, 0, 0),
+  level = c(0.02, 0.05, 0.1, 0.2))
 }
 \arguments{
 \item{windows}{q by 2 matrix giving region boundaries}
 
-\item{type.sequence}{Vector of integers in 1:6 giving the type of each subregion.}
-
 \item{dat}{p x n matrix of data}
 
-\item{labs}{0/1 treatment status of each sample (length n)}
+\item{x}{treatment status of each sample (length n)}
 
 \item{s0}{}
+
+\item{type.sequence}{Vector of integers in 1:6 giving the type of each subregion.}
 
 \item{stat.names}{Length k. Contains elements of "Poisson", "Huber", "t-test"}
 }
