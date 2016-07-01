@@ -1,19 +1,21 @@
 
-run_waveQTL <- function(windows,type.sequence, dat, sample.size,
+run_waveQTL <- function(windows, dat, x, signal, level=c(0.02, 0.05, 0.1, 0.2),
                         waveQTL_loc="~/Desktop/Cluster_FDR/cfdrSims/WaveQTL-master/bin/WaveQTL"){
 
-  N <- floor(runif(n=1, min=10, max=1e9))
-  geno <- c("chr1.1", "A", "G", rep(c(0, 1), sample.size))
+  N <- floor(runif(n=1, min=10, max=1e9)) #Random number label
+  geno <- c("chr1.1", "A", "G", x) #''genotype'' info
   cat(geno, file=paste0("geno_", N, ".txt"))
+
   n <- ncol(dat)
   p <- nrow(windows)
-  S <- Intervals(windows)
+  w<- Intervals(windows)
+  if(!class(signal)=="Intervals") signal <- Intervals(signal)
 
+  #Window labels (signal or not)
   l <- rep(0, p)
-  s <- get_signal(type.sequence, bandwidth=0)
-  p0 <- nrow(s$signal)
-  d <- distance_to_nearest(S, s$signal)
+  d <- distance_to_nearest(w, signal)
   l[d==0] <- 1
+
 
   pvals <- c()
   for(i in 1:p){
@@ -30,10 +32,14 @@ run_waveQTL <- function(windows,type.sequence, dat, sample.size,
     unlink(paste0(f, "_pheno.txt"))
     unlink(paste0(f, "_use.txt"))
   }
-  rates <- data.frame(t(sapply(sort(-log10(pvals)), FUN=function(x){
-    tpr_nfp(s$signal, discoveries=windows[-log10(pvals) >= x, , drop=FALSE])
-  })))
   qvals <- p.adjust(pvals, method="BH")
+  rates <- data.frame(t(sapply(sort(-log10(pvals)), FUN=function(xx){
+    tpr_nfp(signal, discoveries=w[-log10(pvals) >= xx, , drop=FALSE])
+  })))
+  rates_at <- t(sapply(level, FUN=function(ll){
+    tpr_nfp(signal=signal, discoveries = w[qvals<= ll, ])
+  }))
+
   unlink(paste0("geno_", N, ".txt"))
-  return(list("pvals"=pvals, "qvals"=qvals, "rates"=rates))
+  return(list("pvals"=pvals, "qvals"=qvals, "rates"=rates, "rates_at"=rates_at))
 }
