@@ -2,16 +2,13 @@
 #' Test simulations in windows
 #'@description Calculate test statistics binning over aupplied regions
 #'@param windows q by 2 matrix giving region boundaries
-#'@param type.sequence Vector of integers in 1:6 giving the type of each subregion.
+#'@param pos Positions
 #'@param dat p x n matrix of data
 #'@param x treatment status of each sample (length n)
+#'@param signal
 #'@param s0
-#'@param stat.names Length k. Contains elements of "Poisson", "Huber", "t-test"
-#' @return A list with elements:
-#' \describe{
-#' \item{\code{stats}}{ matrix k by q giving statistic for each bin }
-#' \item{\code{rate_list}}{list of length k. Each element is a three column matrix with columns fdp, tp, fp}
-#' }
+#'@param level
+#' @return A list
 #'@export
 window_test <- function(windows, dat, pos, x, signal, huber.maxit=50,
                         s0=c(0, 0, 0), level=c(0.02, 0.05, 0.1, 0.2)){
@@ -69,7 +66,7 @@ window_test <- function(windows, dat, pos, x, signal, huber.maxit=50,
     qvals[i,] <- p.adjust(pvals[i,], method="BH")
 
     rates_at[i, , ] <- t(sapply(level, FUN=function(ll){
-      cfdrSims:::tpr_nfp(signal=signal, discoveries = w[qvals[i, ] <= ll, ])
+      tpr_nfp(signal=signal, discoveries = w[qvals[i, ] <= ll, ])
     }))
   }
   return(list("stats"=stats, "rates"=rates, "rates_at"=rates_at, "windows"=windows,
