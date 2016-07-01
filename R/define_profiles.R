@@ -44,7 +44,7 @@ lump_intervals <- function(n.lumps=1, total.width=200, peak.base=20, n.sep=2){
   peak.total.base <- peak.base*n.lumps + n.sep*(n.lumps-1)
   w1 <- floor((total.width-peak.total.base)/2)
   w2 <- total.width-peak.total.base-w1
-  starts <- w1 + (1:n.lumps-1)*(peak.base+n.sep)
+  starts <- w1 + (1:n.lumps-1)*(peak.base+n.sep) + 1
   stops <- starts + peak.base
   return(cbind(starts, stops))
 }
