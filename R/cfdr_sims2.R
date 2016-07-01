@@ -58,8 +58,9 @@ cfdr_sims2 <- function(x, pk.ht.funcs, type.sequence, n.seg=NULL,
     sample( x, size=length(x), replace=FALSE)
   })
 
-  n.f.disc <- n.t.disc <- tpr <-  array(0, dim=c(3, b, k))
-
+  #n.f.disc <- n.t.disc <- tpr <-  array(0, dim=c(3, b, k))
+  rates_at <- array(0, dim=c(3, k, b, 4))
+  dimnames(rates_at)= list(stat.names, c(1, n.seg), level, c("tpr", "nfp", "ntp", "fdp"))
   #Generage Data
   P <- sapply(x, FUN=function(xx){
     ht.list = lapply(type.sequence, FUN=function(t){pk.ht.funcs[[t]](xx)$ht})
@@ -94,11 +95,8 @@ cfdr_sims2 <- function(x, pk.ht.funcs, type.sequence, n.seg=NULL,
 
       for(j in 1:b){
         if(nrow(cl[[i]][[k]]$clust[[j]])> 0){
-          rates <- cfdrSims:::tpr_nfp(Intervals(S$signal),
+          rates_at[i, k, j, ]<- cfdrSims:::tpr_nfp(Intervals(S$signal),
                                       discoveries=cl[[i]][[k]]$clust[[j]])
-          n.t.disc[i, j, k] <- rates["ntp"]
-          n.f.disc[i, j, k] <- rates["nfp"]
-          tpr[i, j, k] <- rates["tpr"]
         }
       }
     }
@@ -106,8 +104,8 @@ cfdr_sims2 <- function(x, pk.ht.funcs, type.sequence, n.seg=NULL,
   }
 
   if(!save.data) D <- NULL
-  R <- list("n.f.disc"=n.f.disc, "n.t.disc"=n.t.disc, "tpr"=tpr,
-            "stat.names"=stat.names, "cl"=cl, "signal"=S,
+  R <- list("rates_at"=rates_at,
+            "stat.names"=stat.names, "cl"=cl, "signal"=S, "means"=P,
             "type.sequence"=type.sequence, "x"=x, "pk.pk.ht.funcs"=pk.ht.funcs,
             "dat"=D, "stats"=stats, "seed"=seed)
   if(!is.null(file.name)){
