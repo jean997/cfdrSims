@@ -49,7 +49,7 @@ run_bin <- function(seed, prefix, n, n.perm=500, waveQTL_loc="~/.local/bin/WaveQ
   save(w_64b_test, file=paste0(file.start, "_w64b.RData"))
   w_64b_waveqtl <-run_waveQTL(w_64b, dat=R$dat, x=R$x, signal=R$signal$signal,
                               waveQTL_loc=waveQTL_loc)
-  save(w_64e_waveqtl, file=paste0(file.start, "_w64b_wave.RData"))
+  save(w_64b_waveqtl, file=paste0(file.start, "_w64b_wave.RData"))
 
 }
 
@@ -104,5 +104,5 @@ run_bin2 <- function(seed, prefix, n, n.perm=500, waveQTL_loc="~/.local/bin/Wave
   save(w_64b_test, file=paste0(file.start, "_w64b.RData"))
   w_64b_waveqtl <-run_waveQTL(w_64b, dat=R$dat, x=R$x, signal=R$signal$signal,
                               waveQTL_loc=waveQTL_loc)
-  save(w_64e_waveqtl, file=paste0(file.start, "_w64b_wave.RData"))
+  save(w_64b_waveqtl, file=paste0(file.start, "_w64b_wave.RData"))
 }
