@@ -250,19 +250,24 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
     mu[labs==1] = cts[2]/n[2]
     phi = 1/(sum(n) - 2)* sum( (y-mu)^2/mu)
     s1 = sqrt(phi)*sqrt(sum(1/cts))
-    return(c(beta1/s1, tp(beta1/s1, df=sum(n)-2)))
+    return(c(beta1, s1, beta1/s1, tp(beta1/s1, df=sum(n)-2)))
   }
   huber_reg <- function(y, labs){
     f <- rlm(y~labs, psi=psi.huber, k=1.345, scale.est="Huber", maxit=50)
     b1 <- summary(f)$coefficients[2, 1]
     s <- summary(f)$coefficients[2, 2]
     if(is.na(s)) return(c(0, 1))
-    return(c(b1/s, normp(b1/s)))
+    return(c(b1, s, b1/s, normp(b1/s)))
   }
   tt <- function(y, labs){
-    f <- t.test(y~labs)
-    return(as.vector(c(f$statistic, f$p.value)))
+    b <- mean(y[labs==1]-mean(y[labs==0]))
+    s <- sqrt( var(y[labs==1])/sum(labs==1) + var(y[labs==0])/sum(labs==0))
+    return(c(b, s, b/s, tp(b/s, df=length(y)/2-1)))
   }
+
+
+
+
   dat <- getobj(dat.file)
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
   X <- X[match(names(dat)[2:26], X$X1),  ]
@@ -272,13 +277,18 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
     dat <- dat[dat$win %in% wins,]
   }
 
-  #Window start stop HuberStat HuberP PoisStat PoisP Tstat TP
+  #Window start stop
+  #Four collumns for each stat: beta, se, stat, p-value
   res <- apply(dat, MARGIN=1, FUN=function(x){
     y <- as.numeric(x[2:26])
     c(x[1], x[27], x[28], huber_reg(y, labs), pois_reg(y, labs), tt(y, labs))
   })
   res <- data.frame(t(res))
-  names(res) <- c("Window", "Start", "Stop", "HuberStat", "HuberP", "PoisStat", "PoisP", "TStat", "TP")
+  nms <- c("Window", "Start", "Stop")
+  nms <- c(nms, paste0("Huber", c("Beta", "SE", "Stat", "P")))
+  nms <- c(nms, paste0("Pois", c("Beta", "SE", "Stat", "P")))
+  nms <- c(nms, paste0("T", c("Beta", "SE", "Stat", "P")))
+  names(res) <- nms
   cat("\n")
   return(res)
 }
