@@ -234,7 +234,7 @@ discopony_pull_regions <- function(results.file, thresh){
 }
 
 
-dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
+dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
   normp <- function(x){
     if(x < 0) return(2*pnorm(x))
     return(2*pnorm(x, lower.tail=FALSE))
@@ -275,9 +275,6 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50, win.range=NULL){
   X <- X[match(names(dat)[2:26], X$X1),  ]
   labs <- X$X2
 
-  if(!is.null(win.range)){
-    dat <- dat[dat$win %in% wins,]
-  }
 
   #Window start stop
   #Four collumns for each stat: beta, se, stat, p-value
