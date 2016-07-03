@@ -175,6 +175,7 @@ discopony_choose_z <- function(file.list, zmin, nlam){
 }
 
 #This function assumes a v. specific file name structure
+#'@export
 discopony_pull_regions <- function(results.file, thresh){
   Z <- getobj(results.file)
   if(all(Z$fdr > thresh)){
@@ -219,7 +220,8 @@ discopony_pull_regions <- function(results.file, thresh){
     iv <- name_clusters_merged(x=ff[[k]]$ys, z=df$z[i], z0=0.3*0.9)
     nn <- nrow(iv)
     stopifnot(nn==df$R[i])
-    iv <- matrix(ff[[k]]$pos[as.matrix(iv)+1], ncol=2, byrow=FALSE)
+    iv <- matrix(ff[[k]]$pos[as.matrix(iv)], ncol=2, byrow=FALSE)
+    iv[,2] <- iv[,2]+1
     ivls[j:(j+nn-1), c(3, 4)] <- iv
     j <- j + nn
   }
@@ -227,7 +229,7 @@ discopony_pull_regions <- function(results.file, thresh){
   ivls <- data.frame(ivls, stringsAsFactors=FALSE)
   names(ivls) <- c("chr", "chunk", "start", "stop", "z")
   for(j in 2:5) ivls[,j] <- as.numeric(ivls[,j])
-  ivls$length <- ivls$stop-ivls$start + 1
+  ivls$length <- ivls$stop-ivls$start
   return(list("df"=df, "ivls"=ivls))
 }
 

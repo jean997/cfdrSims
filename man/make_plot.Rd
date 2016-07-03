@@ -4,21 +4,21 @@
 \alias{make_plot}
 \title{Plot Simulations}
 \usage{
-make_plot(summ.files, out.name, lty.legend, ltys = c(2, 1), ymax = NULL,
-  levels = c(0.02, 0.05, 0.1, 0.2))
+make_plot(tot.rates, out.name, names, ltys, cols, shapes, levels = c(0.02,
+  0.05, 0.1, 0.2))
 }
 \arguments{
-\item{summ.files}{List of summary files (see collect.R)}
-
 \item{out.name}{Output file name}
-
-\item{lty.legend}{Legend labels for line type}
 
 \item{ltys}{Line type for each summary file}
 
-\item{ymax}{Optional max height of FDR y axis}
-
 \item{levels}{Levels in summ.files}
+
+\item{summ.files}{List of summary files (see collect.R)}
+
+\item{lty.legend}{Legend labels for line type}
+
+\item{ymax}{Optional max height of FDR y axis}
 }
 \value{
 nothing
