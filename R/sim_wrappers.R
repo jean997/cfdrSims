@@ -29,7 +29,7 @@ run_bin <- function(seed, prefix, n, type.sequence, n.seg=c(2, 6), sample.size=c
 
 
 #'@export
-run_quant <- function(seed, prefix, n, type.sequence, n.seg=c(2, 6), sample.size=30,
+run_cont <- function(seed, prefix, n, type.sequence, n.seg=c(2, 6), sample.size=30,
                        n.perm=500, waveQTL_loc="~/.local/bin/WaveQTL"){
   file.start <- paste0(prefix, "_", n)
   x <- rbeta(n=sample.size, shape1=2, shape2=2)
