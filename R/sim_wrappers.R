@@ -55,7 +55,11 @@ run_quant <- function(seed, prefix, n, type.sequence, n.seg=c(2, 6), sample.size
     p2 <- sample(c(0, 3), prob=c(0.9, 0.1), size=2, replace=TRUE)
     return(list("ht"=p1+p2, "assoc"=c(1, 1)))
   }
-  pk.ht.funcs = c(g1, g2, g3, g4, g5, g6)
+  g7 <- function(x){
+    p1 <-  4*x +  rexp(n=1, rate=1/4)
+    return(list("ht"=p1, "assoc"=1))
+  }
+  pk.ht.funcs = c(g1, g2, g3, g4, g5, g6, g7)
 
 
   R <- cfdr_sims2(x, pk.ht.funcs, type.sequence, n.seg=n.seg,
