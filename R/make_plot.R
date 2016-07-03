@@ -9,72 +9,53 @@
 #'@param levels Levels in summ.files
 #' @return nothing
 #'@export
-make_plot <- function(summ.files, out.name, lty.legend, ltys=c(2, 1),
-                      ymax=NULL, levels=c(0.02, 0.05, 0.1, 0.2)){
+make_plot <- function(tot.rates, out.name, names, ltys, cols, shapes,
+                      levels=c(0.02, 0.05, 0.1, 0.2)){
 
-  p = length(summ.files)
 
+  p = length(names)
   stopifnot(length(ltys) == p)
-  stopifnot(length(lty.legend)==p)
-  cols=c("seagreen", "violetRed", "black")
+  if(is.null(cols)) cols=1:p
 
-  png(out.name, width=1000, height=500)
-  par(mfrow=c(1, 2))
-  if(is.null(ymax)){
-    ymax <- 0.2
-    for(file in summ.files){
-      Z <- getobj(file)
-      fdp <- apply(Z$fdp, MARGIN=c(1, 2), FUN=mean)
-      ymax <- max(ymax, max(fdp))
-    }
-  }
-  plot(0, 0, yaxt="n", xaxt="n", type="n", xlab="Target FDR",
-           ylab="Average False Discovery Proportion", xlim=c(0, max(levels)),
-           ylim=c(0, ymax))
-  axis(side = 1, at=levels)
-  axis(side = 2, at=levels)
-  abline(0, 1, lty=2)
+  stopifnot(all(names %in% tot.rates$names))
+  ix <- match(names, tot.rates$names)
 
-  for(j in 1:p){
-    Z <- getobj(summ.files[j])
-    stopifnot(dim(Z$fdp)[2]==length(levels))
-    fdp <- apply(Z$fdp, MARGIN=c(1, 2), FUN=mean)
-    for(i in 1:3){
-      lines(levels, fdp[i,], lty=ltys[j],
-            col=cols[i], pch=i, type="b", lwd=3)
-    }
-  }
+  tpr <- tot.rates$avg.tpr[ix,]
+  tpr <- data.frame(tpr)
+  fdp <- tot.rates$avg.fdp[ix,]
+  fdp <- data.frame(fdp)
 
-  plot(0, 0, yaxt="n", xaxt="n", type="n", xlab="Target FDR",
-       ylab="Average True Positive Rate", xlim=c(0, max(levels)),
-       ylim=c(0,1))
-  axis(side = 1, at=levels)
-  axis(side = 2, at=c(0, 0.2, 0.4, 0.6, 0.8, 1))
+  tpr$type <- fdp$type <- as.factor(names)
+  names(tpr) <- names(fdp) <- c(levels, "type")
+  tprlong <- gather(tpr, "level", "tpr", -type, convert=TRUE)
+  fdplong <- gather(fdp, "level", "fdp", -type, convert=TRUE)
 
-  for(j in 1:p){
-    Z <- getobj(summ.files[j])
-    tpr <- apply(Z$tpr, MARGIN=c(1, 2), FUN=mean)
-    for(i in 1:3){
-      lines(levels, tpr[i,], lty=ltys[j],
-            col=cols[i], pch=i, type="b", lwd=3)
-    }
+  #tprlong$type <- relevel(tprlong$type, names)
+  #fdplong$type <- relevel(fdplong$type, names)
 
-  }
-  legend("topleft", legend=c("Poisson", "Huber", "t-test"),
-         col=c("black", "violetRed", "seagreen"), lty=1)
-  #if(length(s0s) ==2){
-  #  l <- c()
-  #  for(j in 1:p){
-  #    l <- c(l, as.expression(bquote(delta == .(s0s[j]))))
-  #  }
-  #  legend("topright", legend=l, lty=c(2, 1))
-  #}else{
-  #  l <- c()
-  #  for(j in 1:p){
-  #    l <- c(l, as.expression(bquote("nsegs" == .(nsegs[j]))))
-  #  }
-  legend("topright", legend=lty.legend, lty=ltys)
+  tprplot <- ggplot(tprlong) + geom_line(aes(x=level, y=tpr, group=type, col=type, lty=type), lwd=2) +
+    geom_point(aes(x=level, y=tpr), size=12, colour="white", shape=20) +
+    geom_point(aes(x=level, y=tpr, col=type, shape=type), size=4) +
+    theme_bw() + labs(x="Target FDR", y="Average True Positive Rate") +
+    scale_color_manual(values=cols) +
+    scale_linetype_manual(values=ltys) +
+    scale_shape_manual(values=shapes) +
+    scale_x_continuous(breaks=levels, limits=c(0, max(levels))) +
+    scale_y_continuous(limits = c(0, max(tot.rates$avg.tpr[ix,]))) +
+    theme(panel.grid=element_blank())
 
-  dev.off()
-
+  if(max(tot.rates$avg.fdp[ix,]) < max(levels)) ymx <- max(levels)
+    else ymx <- max(tot.rates$avg.fdp[ix,])
+  fdpplot <- ggplot(fdplong) + geom_line(aes(x=level, y=fdp, group=type, col=type, lty=type), lwd=2) +
+    geom_point(aes(x=level, y=fdp), size=12, colour="white", shape=20) +
+    geom_point(aes(x=level, y=fdp, col=type, shape=type), size=4) +
+    geom_abline(slope=1, intercept=0) +
+    theme_bw() + labs(x="Target FDR", y="Average False Discovery Proportion") +
+    scale_color_manual(values=cols) +
+    scale_linetype_manual(values=ltys) +
+    scale_shape_manual(values=shapes) +
+    scale_x_continuous(breaks=levels, limits=c(0, max(levels))) +
+    scale_y_continuous(breaks=levels, limits = c(0, ymx)) +
+    theme(panel.grid=element_blank())
+  return(list("tprplot"=tprplot, "fdpplot"=fdpplot))
 }
