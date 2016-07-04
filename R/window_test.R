@@ -74,7 +74,8 @@ window_test <- function(windows, dat, pos, x, signal, huber.maxit=50,
 
 }
 
-run_deseq2 <- function(windows, dat, pos, x, signal,
+#'@export
+deseq2_test <- function(windows, dat, pos, x, signal,
                       level=c(0.02, 0.05, 0.1, 0.2)){
 
 
@@ -103,7 +104,7 @@ run_deseq2 <- function(windows, dat, pos, x, signal,
   window.dat <- window.dat[window.dat$win > 0,]
 
   counts <- as.matrix(window.dat[,-1])
-  pheno <- data.frame(cbind(window.dat$win, x))
+  pheno <- data.frame(cbind(1:length(x), x))
   names(pheno) <- c("name", "x")
   colnames(counts) = pheno$name
   deseq_obj <- DESeqDataSetFromMatrix(counts, pheno, as.formula("~x"))
