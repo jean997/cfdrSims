@@ -4,12 +4,10 @@
 \alias{make_plot}
 \title{Plot Simulations}
 \usage{
-make_plot(tot.rates, out.name, names, ltys, cols, shapes, levels = c(0.02,
-  0.05, 0.1, 0.2))
+make_plot(tot.rates, names, ltys, cols, shapes, levels = c(0.02, 0.05, 0.1,
+  0.2))
 }
 \arguments{
-\item{out.name}{Output file name}
-
 \item{ltys}{Line type for each summary file}
 
 \item{levels}{Levels in summ.files}
