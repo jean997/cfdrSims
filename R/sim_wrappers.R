@@ -107,3 +107,16 @@ run_win_tests <- function(file.start, p, waveQTL_loc, s0=c(0, 0, 0)){
                               waveQTL_loc=waveQTL_loc)
   save(w_64b_waveqtl, file=paste0(file.start, "_w64b_wave.RData"))
 }
+
+run_deseq2 <- function(file.start){
+  R <- getobj(paste0(file.start, "_fret.RData"))
+  p <- dim(R$dat)[1]
+  k <- p/200
+  w_64e <- cbind(seq(1, p - (p%%64), by=64), seq(64, p, by=64))
+  w_64b <- cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))
+  w_64e_deseq2 <-deseq2_test(w_64e, R$dat, 1:p, R$x, R$signal$signal)
+  save(w_64e_deseq2, file=paste0(file.start, "_w64e_deseq2.RData"))
+  w_64b_deseq2 <-deseq2_test(w_64b, R$dat, 1:p, R$x, R$signal$signal)
+  save(w_64b_deseq2, file=paste0(file.start, "_w64b_deseq2.RData"))
+
+}
