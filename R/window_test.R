@@ -72,6 +72,52 @@ window_test <- function(windows, dat, pos, x, signal, huber.maxit=50,
   return(list("stats"=stats, "rates"=rates, "rates_at"=rates_at, "windows"=windows,
               "stat.names"=stat.names, "pvals"=pvals, "qvals"=qvals, "class"=l))
 
+}
+
+run_deseq2 <- function(windows, dat, pos, x, signal,
+                      level=c(0.02, 0.05, 0.1, 0.2)){
 
 
+  n <- ncol(dat)
+  p <- nrow(windows)
+  w<- Intervals(windows)
+  if(!class(signal)=="Intervals") signal <- Intervals(signal)
+
+  #Window labels (signal or not)
+  l <- rep(0, p)
+  d <- distance_to_nearest(w, signal)
+  l[d==0] <- 1
+
+  #Window data
+  win <- sapply(pos, FUN=function(x){
+    w1 <- which(x >= windows[,1])
+    w2 <- which(x <= windows[,2])
+    wov <- intersect(w1, w2)
+    if(length(wov)==0) return(0)
+    else if (length(wov)==1) return(wov)
+    else return(NA)
+  })
+  dat <- data.frame(dat)
+  dat$win <- win
+  window.dat <- dat %>% group_by(win) %>% summarise_each(funs(sum))
+  window.dat <- window.dat[window.dat$win > 0,]
+
+  counts <- as.matrix(window.dat[,-1])
+  pheno <- data.frame(cbind(window.dat$win, x))
+  names(pheno) <- c("name", "x")
+  colnames(counts) = pheno$name
+  deseq_obj <- DESeqDataSetFromMatrix(counts, pheno, as.formula("~x"))
+  norm_table=matrix(1, nrow=nrow(counts), ncol=ncol(counts))
+  normalizationFactors(deseq_obj) = norm_table
+  deseq_obj = DESeq(deseq_obj)
+  results = results(deseq_obj, independentFiltering =FALSE)
+
+  rates_at <- t(sapply(level, FUN=function(ll){
+    tpr_nfp(signal=signal, discoveries = w[results$padj <= ll, ])
+  }))
+  rates <- t(sapply(sort(abs(results$stat)), FUN=function(xx){
+    tpr_nfp(signal, discoveries=w[abs(results$stat) >= xx, , drop=FALSE])
+  }))
+  return(list("results"=results, "rates"=rates, "rates_at"=rates_at,
+              "windows"=windows, "class"=l))
 }
