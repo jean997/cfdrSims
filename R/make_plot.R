@@ -2,14 +2,13 @@
 #' Plot Simulations
 #'@description Plot simulations
 #'@param summ.files List of summary files (see collect.R)
-#'@param out.name Output file name
 #'@param lty.legend Legend labels for line type
 #'@param ltys Line type for each summary file
 #'@param ymax Optional max height of FDR y axis
 #'@param levels Levels in summ.files
 #' @return nothing
 #'@export
-make_plot <- function(tot.rates, out.name, names, ltys, cols, shapes,
+make_plot <- function(tot.rates, names, ltys, cols, shapes,
                       levels=c(0.02, 0.05, 0.1, 0.2)){
 
 
