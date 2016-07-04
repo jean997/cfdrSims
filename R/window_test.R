@@ -105,6 +105,7 @@ deseq2_test <- function(windows, dat, pos, x, signal,
 
   counts <- as.matrix(window.dat[,-1])
   pheno <- data.frame(cbind(1:length(x), x))
+  if(all(x%in% c(0, 1))) pheno$x <- factor(pheno$x)
   names(pheno) <- c("name", "x")
   colnames(counts) = pheno$name
   deseq_obj <- DESeqDataSetFromMatrix(counts, pheno, as.formula("~x"))
