@@ -337,7 +337,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     unlink(paste0(f, "_pheno.txt"))
     unlink(paste0(f, "_use.txt"))
   }
-  return(list("pvals"=pval, "windows"=win.bound))
+  return(list("pvals"=pvals, "windows"=win.bound))
 }
 
 #'@export
