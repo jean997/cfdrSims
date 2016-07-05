@@ -306,7 +306,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
   #This is a bed file
   win.bound = read_delim(window.file, delim="\t", col_names=FALSE)
   win.bound = win.bound[win.bound$X1==chr,]
-
+  cat(dim(win.bound)[1], " total windows")
   wins = unique(dat$win)
   if(!is.null(win.range)){
     ix <- which(wins >= win.range[1] & wins <= win.range[2])
@@ -314,9 +314,11 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     win.bound = win.bound[ix,]
   }
   win.bound = as.matrix(win.bound[, 2:3])
+  cat(dim(win.bound)[1], " windows to analyze")
   stopifnot(length(wins)==dim(win.bound)[1])
   pvals = c()
   for(i in 1:length(wins)){
+    cat(i, " ")
     w = wins[i]
     pos = win.bound[i,1]:(win.bound[i,2]-1)
     n = length(pos)
@@ -338,6 +340,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     unlink(paste0(f, "_use.txt"))
     unlink(paste0("output/temp", N, "*"))
   }
+  cat("\n")
   ret <- data.frame(cbind(win.bound, pvals))
   name(ret) = c("start", "stop", "pval")
   ret$chr = chr
