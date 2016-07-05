@@ -342,7 +342,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
   }
   cat("\n")
   ret <- data.frame(cbind(win.bound, pvals))
-  name(ret) = c("start", "stop", "pval")
+  names(ret) = c("start", "stop", "pval")
   ret$chr = chr
   return(ret)
 }
