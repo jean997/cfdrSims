@@ -304,7 +304,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
   cat(geno, file=paste0("geno_", N, ".txt"))
 
   #This is a bed file
-  win.bound = read_deilm(window.file, delim="\t", col_names=FALSE)
+  win.bound = read_delim(window.file, delim="\t", col_names=FALSE)
   win.bound = win.bound[win.bound$X1==chr,]
 
   wins = unique(dat$win)
