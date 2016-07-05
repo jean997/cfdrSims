@@ -290,7 +290,8 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
 }
 
 #'@export
-dnase1_run_waveqtl <- function(dat.file, pheno.file, window.file, waveQTL_loc){
+dnase1_run_waveqtl <- function(dat.file, pheno.file,
+                               window.file, waveQTL_loc, chr, win.range=NULL){
   #Read data. Dat file has first two columns as pos and win
   dat <- read_delim(dat.file, delim=" ")
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
@@ -304,8 +305,14 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file, window.file, waveQTL_loc){
 
   #This is a bed file
   win.bound = read_deilm(window.file, delim="\t", col_names=FALSE)
+  win.bound = win.bound[win.bound$X1==chr,]
 
   wins = unique(dat$win)
+  if(!is.null(win.range)){
+    ix <- which(wins >= win.range[1] & wins <= win.range[2])
+    wins=wins[ix]
+    win.bound = win.bound[ix,]
+  }
   stopifnot(length(wins)==dim(win.bound)[1])
   pvals = c()
   for(i in 1:length(wins)){
