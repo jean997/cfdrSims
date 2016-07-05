@@ -289,7 +289,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
   return(res)
 }
 
-
+#'@export
 dnase1_run_waveqtl <- function(dat.file, pheno.file, window.file, waveQTL_loc){
   #Read data. Dat file has first two columns as pos and win
   dat <- read_delim(dat.file, delim=" ")
@@ -302,8 +302,8 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file, window.file, waveQTL_loc){
   geno <- c("chr1.1", "A", "G", labs)
   cat(geno, file=paste0("geno_", N, ".txt"))
 
-  #This is a bam file
-  win.bound = read_deilm(window.file, delim=" ", col_names=FALSE)
+  #This is a bed file
+  win.bound = read_deilm(window.file, delim="\t", col_names=FALSE)
 
   wins = unique(dat$win)
   stopifnot(length(wins)==dim(win.bound)[1])
@@ -332,8 +332,9 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file, window.file, waveQTL_loc){
   return(list("pvals"=pval, "windows"=win.bound))
 }
 
+#'@export
 expand_windows <- function(win.file, out.file){
-  wins = read_delim(win.file, delim=" ", col_names=FALSE)
+  wins = read_delim(win.file, delim="\t", col_names=FALSE)
   wins$dist = wins$X3-wins$X2
   wins$newDist = 2^ceiling(log2(wins$dist))
   wins$diff = wins$newDist -wins$dist
