@@ -267,9 +267,6 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
     return(c(b, s, b/s, tp(b/s, df=length(y)/2-1)))
   }
 
-
-
-
   dat <- getobj(dat.file)
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
   X <- X[match(names(dat)[2:26], X$X1),  ]
@@ -293,9 +290,60 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
 }
 
 
+dnase1_run_waveqtl <- function(dat.file, pheno.file, window.file, waveQTL_loc){
+  #Read data. Dat file has first two columns as pos and win
+  dat <- read_delim(dat.file, delim=" ")
+  X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
+  X <- X[match(names(dat)[3:27], X$X1),  ]
+  labs <- X$X2
 
+  #Write "genotype" file
+  N <- floor(runif(n=1, min=10, max=1e9)) #Random number label
+  geno <- c("chr1.1", "A", "G", labs)
+  cat(geno, file=paste0("geno_", N, ".txt"))
 
+  #This is a bam file
+  win.bound = read_deilm(window.file, delim=" ", col_names=FALSE)
 
+  wins = unique(dat$win)
+  stopifnot(length(wins)==dim(win.bound)[1])
+  pvals = c()
+  for(i in 1:length(wins)){
+    w = wins[i]
+    pos = win.bound[i,2]:win.bound[i,3]
+    n = length(pos)
+    stopifnot(log2(n)==trunc(log2(n)))
+    pdat = dat[dat$win==w, ]
+    pheno.dat <- matrix(0, nrow=n, ncol=25)
+    ix = match(pdat$pos, pos)
+    pheno.dat[ix,] = as.matrix(pdat[, 3:27])
+    res <- WaveQTL_preprocess(Data = t(pheno.dat), meanR.thresh = 0)
+    f <- tempfile(tmpdir = ".")
+    write.table(res$WCs, file=paste0(f, "_pheno.txt"), row.names=FALSE, col.names=FALSE, quote=FALSE)
+    cat(res$filtered.WCs, file=paste0(f, "_use.txt"))
+    cmd <- paste0(waveQTL_loc, " -gmode 1 -g geno_", N, ".txt -p ",
+                f, "_pheno.txt -u ", f, "_use.txt -o temp", N, " -f ", n, " -numPerm 1000 -fph 2")
+    system(cmd)
+    pval <- read.table(paste0("output/temp", N, ".fph.pval.txt"), header=TRUE)
+    pvals <- c(pvals, pval[3, 1])
+    unlink(paste0(f, "_pheno.txt"))
+    unlink(paste0(f, "_use.txt"))
+  }
+  return(list("pvals"=pval, "windows"=win.bound))
+}
+
+expand_windows <- function(win.file, out.file){
+  wins = read_delim(win.file, delim=" ", col_names=FALSE)
+  wins$dist = wins$X3-wins$X2
+  wins$newDist = 2^ceiling(log2(wins$dist))
+  wins$diff = wins$newDist -wins$dist
+  wins$start = wins$X2-floor(wins$diff/2)
+  wins$stop = wins$X3 + ceiling(wins$diff/2)
+  wins.bam = wins[, c("X1", "start", "stop")]
+  write.table(wins.bam, file=out.file, sep="\t", quote=FALSE, row.names=FALSE, col.names=FALSE)
+}
+
+#'@export
 strsplit_helper <- function(list, split, field, fixed=FALSE){
   x <- unlist(lapply(list, FUN=function(x){
     unlist(strsplit(x, split, fixed=fixed))[field]}))
