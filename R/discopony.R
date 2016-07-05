@@ -313,6 +313,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     wins=wins[ix]
     win.bound = win.bound[ix,]
   }
+  win.bound = as.matrix(win.bound)
   stopifnot(length(wins)==dim(win.bound)[1])
   pvals = c()
   for(i in 1:length(wins)){
