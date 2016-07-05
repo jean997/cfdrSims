@@ -309,21 +309,18 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
   cat(dim(win.bound)[1], " total windows")
   wins = unique(dat$win)
   if(!is.null(win.range)){
-    ix <- which(wins >= win.range[1] & wins <= win.range[2])
-    wins=wins[ix]
-    win.bound = win.bound[ix,]
+    wins=wins[wins >= win.range[1] & wins <= win.range[2]]
   }
   win.bound = as.matrix(win.bound[, 2:3])
   cat(dim(win.bound)[1], " windows to analyze")
-  stopifnot(length(wins)==dim(win.bound)[1])
+
   pvals = c()
-  for(i in 1:length(wins)){
-    cat(i, " ")
-    w = wins[i]
-    pos = win.bound[i,1]:(win.bound[i,2]-1)
+  for(w in wins){
+    cat(w, " ")
+    pos = win.bound[w,1]:(win.bound[w,2]-1)
     n = length(pos)
     stopifnot(log2(n)==trunc(log2(n)))
-    pdat = dat[dat$win==w & (!dat$pos == win.bound[i,2]), ]
+    pdat = dat[dat$win==w & (!dat$pos == win.bound[w,2]), ]
     pheno.dat <- matrix(0, nrow=n, ncol=25)
     ix = match(pdat$pos, pos)
     pheno.dat[ix,] = as.matrix(pdat[, 3:27])
