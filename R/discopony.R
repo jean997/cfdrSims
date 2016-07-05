@@ -338,7 +338,10 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     unlink(paste0(f, "_use.txt"))
     unlink(paste0("output/temp", N, "*"))
   }
-  return(list("pvals"=pvals, "windows"=win.bound))
+  ret <- data.frame(cbind(win.bound, pvals))
+  name(ret) = c("start", "stop", "pval")
+  ret$chr = chr
+  return(ret)
 }
 
 #'@export
