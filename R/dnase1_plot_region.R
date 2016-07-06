@@ -48,8 +48,8 @@ dnase1_plot_region <- function(chr, strt, stp,
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
   if(length(ix_pk)> 0){
-    wintest_res[2, 1] = hotspot_stats$qvalue[ix2]
-    wintest_res[3, 1] = hotspot_stats$padj[ix2]
+    wintest_res[2, 1] = peak_stats$qvalue[ix2]
+    wintest_res[3, 1] = peak_stats$padj[ix2]
   }
   rm(peak_stats)
 
