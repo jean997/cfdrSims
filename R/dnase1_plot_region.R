@@ -36,14 +36,14 @@ dnase1_plot_region <- function(chr, strt, stp,
   rm(peak_stats)
 
   #DESeq2 Statistics
-  hotspot_stats = getobj("deseq2_analysi/hs_deseq2.RData")
+  hotspot_stats = getobj("deseq2_analysis/hs_deseq2.RData")
   hotspot_stats = hotspot_stats[hotspot_stats$chr==chr,]
   ix2 = which(hotspot_stats$winstart==hs[ix_hs,1])
   wintest_res[2, 1] = hotspot_stats$qvalue[ix2]
   wintest_res[3, 1] = hotspot_stats$padj[ix2]
   rm(hotspot_stats)
 
-  peak_stats = getobj("deseq2_analysi/peak_deseq2.RData")
+  peak_stats = getobj("deseq2_analysis/peak_deseq2.RData")
   peak_stats = peak_stats[peak_stats$chr==chr,]
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
