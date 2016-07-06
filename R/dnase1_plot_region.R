@@ -4,6 +4,7 @@
 dnase1_plot_region <- function(chr, strt, stp,
                                bandwidth=50, buffer=300){
 
+  options("scipen"=3)
 
   hs = read_delim("merged_hotspots.bed", delim="\t", col_names=FALSE)
   #Figure out which hotspot overlaps
@@ -25,22 +26,22 @@ dnase1_plot_region <- function(chr, strt, stp,
   hotspot_stats = getobj("hotspot_dat/hs_all_tests_s0-0.05.RData")
   hotspot_stats = hotspot_stats[hotspot_stats$chr==chr,]
   ix2 = which(hotspot_stats$Window==ix_hs)
-  wintest_res[1, 1] = hotspot_stats$HuberQ_05[ix2]
+  wintest_res[1, 1] = format(hotspot_stats$HuberQ_05[ix2], digits=2)
   rm(hotspot_stats)
 
   peak_stats = getobj("hotspot_dat/peak_all_tests_s0-0.05.RData")
   peak_stats = peak_stats[peak_stats$chr==chr, ]
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
-  if(length(ix_pk > 0)) wintest_res[1, 2] = peak_stats$HuberQ_05[ix_pk]
+  if(length(ix_pk > 0)) wintest_res[1, 2] = format(peak_stats$HuberQ_05[ix_pk], digits=2)
   rm(peak_stats)
 
   #DESeq2 Statistics
   hotspot_stats = getobj("deseq2_analysis/hs_deseq2.RData")
   hotspot_stats = hotspot_stats[hotspot_stats$chr==chr,]
   ix2 = which(hotspot_stats$winstart==hs[ix_hs,1])
-  wintest_res[2, 1] = hotspot_stats$qvalue[ix2]
-  wintest_res[3, 1] = hotspot_stats$padj[ix2]
+  wintest_res[2, 1] = format(hotspot_stats$qvalue[ix2], digits=2)
+  wintest_res[3, 1] = format(hotspot_stats$padj[ix2], digits=2)
   rm(hotspot_stats)
 
   peak_stats = getobj("deseq2_analysis/peak_deseq2.RData")
@@ -48,8 +49,8 @@ dnase1_plot_region <- function(chr, strt, stp,
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
   if(length(ix_pk)> 0){
-    wintest_res[2, 1] = peak_stats$qvalue[ix2]
-    wintest_res[3, 1] = peak_stats$padj[ix2]
+    wintest_res[2, 2] = format(peak_stats$qvalue[ix2], digits=2)
+    wintest_res[3, 2] = format(peak_stats$padj[ix2], digits=2)
   }
   rm(peak_stats)
 
@@ -63,7 +64,8 @@ dnase1_plot_region <- function(chr, strt, stp,
 
   wintest_res = data.frame(wintest_res)
   names(wintest_res)=c("Hotspot", "Peak")
-  rownames(wintest_res)=c("Huber", "DESeq2-Q", "DESeq2 -QIF", "Wellington")
+  wintest_res$Test=c("Huber", "DESeq2-Q", "DESeq2 -QIF", "Wellington")
+  wintest_res = wintest_res[, c("Test", "Hotspot", "Peak")]
 
   #Read data
   cmd = paste0("awk '{if($2==", ix_hs, "){print}}' hotspot_dat/hs_", chr, ".txt > temp.dat")
@@ -112,10 +114,10 @@ dnase1_plot_region <- function(chr, strt, stp,
   }
   dat=dat[keep,]
   datlong = gather(dat, "sample", "count", -pos, -win)
-  datlong$pheno = factor(X$X2[match(datlong$sample, X$nn)])
+  datlong$Sensitve = factor(X$X2[match(datlong$sample, X$nn)])
 
   dataplot = ggplot(datlong) + geom_line(aes(x=pos, y=count, group=sample, color=pheno)) +
-        theme_bw() + xlab("Positin") + ylab("DNase 1 Sensitivity")
+        theme_bw() + xlab("Position") + ylab("DNase 1 Sensitivity")
 
   statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat))
   if(length(ix_fret_chr)==1) statplot = statplot + geom_hline(data=stat_at_fdr, aes(yintercept=stat, col=fdr))
