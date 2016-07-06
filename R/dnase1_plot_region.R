@@ -119,7 +119,7 @@ dnase1_plot_region <- function(chr, strt, stp,
   dataplot = ggplot(datlong) + geom_line(aes(x=pos, y=count, group=sample, color=Sensitve)) +
         theme_bw() + xlab("Position") + ylab("DNase 1 Sensitivity")
 
-  statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat))
+  statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat)) + xlab("Statistic") + ylab("Position") +
   if(length(ix_fret_chr)==1) statplot = statplot + geom_hline(data=stat_at_fdr, aes(yintercept=stat, col=fdr))
   statplot = statplot + geom_hline(yintercept = c(-1, 1)*0.9, col="red") + theme_bw()
 
