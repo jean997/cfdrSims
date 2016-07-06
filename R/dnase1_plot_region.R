@@ -100,8 +100,8 @@ dnase1_plot_region <- function(chr, strt, stp,
     ss = huber_helper(as.matrix(dat)[, -c(1, 2)], X$X2)
     ss = ss[1,]/(ss[2,] + 0.05)
     stats = ksmooth_0(x=dat$pos, y=ss, bandwidth=50)
-    stats.data = data.frame(cbind(dat$pos, stats))[keep,]
-    names(stats.data)=c("pos", "stat")
+    stat.data = data.frame(cbind(dat$pos, stats))[keep,]
+    names(stat.data)=c("pos", "stat")
   }else{
     stopifnot(length(ix_fret_chr)==1)
     R = getobj(paste0("discopony_output/", chr, "/", chr, "_maxes.upd.RData"))
