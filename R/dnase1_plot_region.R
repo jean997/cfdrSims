@@ -33,7 +33,7 @@ dnase1_plot_region <- function(chr, strt, stp,
   peak_stats = peak_stats[peak_stats$chr==chr, ]
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
-  if(length(ix_pk > 0)) wintest_res[1, 2] = format(peak_stats$HuberQ_05[ix_pk], digits=2)
+  if(length(ix_pk > 0)) wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse="; ")
   rm(peak_stats)
 
   #DESeq2 Statistics
@@ -49,8 +49,8 @@ dnase1_plot_region <- function(chr, strt, stp,
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
   if(length(ix_pk)> 0){
-    wintest_res[2, 2] = format(peak_stats$qvalue[ix2], digits=2)
-    wintest_res[3, 2] = format(peak_stats$padj[ix2], digits=2)
+    wintest_res[2, 2] = paste0(format(peak_stats$qvalue[ix2], digits=2), collapse="; ")
+    wintest_res[3, 2] = paste0(format(peak_stats$padj[ix2], digits=2), collapse="; ")
   }
   rm(peak_stats)
 
