@@ -54,11 +54,11 @@ dnase1_plot_region <- function(chr, strt, stp,
   rm(peak_stats)
 
   #Wellington Stats
-  wellington = read_delim("Wellington_Footprints/all_footprints.sorted.bed", delim=" ", col_names=FALSE)
+  wellington = read_delim("Wellington_Footprints/all_footprints.sorted.bed", delim="\t", col_names=FALSE)
   wellington = wellington[wellington$X1==chr,]
   wl = Intervals(wellington[, c(2, 3)])
   ix_wl = unlist(interval_overlap(myI, wl))
-  if(length(ix_wl) > 0) wintest_res[4, 1] = paste0(wellington[ix_wl, c(5, 6)])
+  if(length(ix_wl) > 0) wintest_res[4, 1] = paste0(wellington[ix_wl, c(5, 7)], collapse=" ")
 
 
   wintest_res = data.frame(wintest_res)
