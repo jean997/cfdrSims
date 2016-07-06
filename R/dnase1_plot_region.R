@@ -33,7 +33,7 @@ dnase1_plot_region <- function(chr, strt, stp,
   peak_stats = peak_stats[peak_stats$chr==chr, ]
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
-  if(length(ix_pk > 0)) wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse="; ")
+  if(length(ix_pk > 0)) wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse=";")
   rm(peak_stats)
 
   #DESeq2 Statistics
@@ -49,8 +49,8 @@ dnase1_plot_region <- function(chr, strt, stp,
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
   if(length(ix_pk)> 0){
-    wintest_res[2, 2] = paste0(format(peak_stats$qvalue[ix2], digits=2), collapse="; ")
-    wintest_res[3, 2] = paste0(format(peak_stats$padj[ix2], digits=2), collapse="; ")
+    wintest_res[2, 2] = paste0(format(peak_stats$qvalue[ix2], digits=2), collapse=";")
+    wintest_res[3, 2] = paste0(format(peak_stats$padj[ix2], digits=2), collapse=";")
   }
   rm(peak_stats)
 
@@ -59,8 +59,10 @@ dnase1_plot_region <- function(chr, strt, stp,
   wellington = wellington[wellington$X1==chr,]
   wl = Intervals(wellington[, c(2, 3)])
   ix_wl = unlist(interval_overlap(myI, wl))
-  if(length(ix_wl) > 0) wintest_res[4, 1] = paste0(wellington[ix_wl, c(5, 7)], collapse=" ")
-
+  if(length(ix_wl) > 0) {
+    rr = round(wellington[ix_wl, 5], digits=2)
+    wintest_res[4, 1] = paste0(rr, wellington[ix_wl, c( 7)], collapse=" ")
+  }
 
   wintest_res = data.frame(wintest_res)
   names(wintest_res)=c("Hotspot", "Peak")
@@ -121,7 +123,7 @@ dnase1_plot_region <- function(chr, strt, stp,
   dataplot = ggplot(datlong) + geom_line(aes(x=pos, y=count, group=sample, color=Sensitve)) +
         theme_bw() + xlab("Position") + ylab("DNase 1 Sensitivity")
 
-  statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat)) + xlab("Statistic") + ylab("Position") 
+  statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat)) + xlab("Statistic") + ylab("Position")
   if(length(ix_fret_chr)==1) statplot = statplot + geom_hline(data=stat_at_fdr, aes(yintercept=stat, col=fdr))
   statplot = statplot + geom_hline(yintercept = c(-1, 1)*0.9, col="red") + theme_bw()
 
