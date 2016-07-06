@@ -116,7 +116,7 @@ dnase1_plot_region <- function(chr, strt, stp,
   datlong = gather(dat, "sample", "count", -pos, -win)
   datlong$Sensitve = factor(X$X2[match(datlong$sample, X$nn)])
 
-  dataplot = ggplot(datlong) + geom_line(aes(x=pos, y=count, group=sample, color=pheno)) +
+  dataplot = ggplot(datlong) + geom_line(aes(x=pos, y=count, group=sample, color=Sensitve)) +
         theme_bw() + xlab("Position") + ylab("DNase 1 Sensitivity")
 
   statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat))
