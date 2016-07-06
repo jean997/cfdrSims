@@ -68,9 +68,11 @@ dnase1_plot_region <- function(chr, strt, stp,
   wintest_res = wintest_res[, c("Test", "Hotspot", "Peak")]
 
   #Read data
-  cmd = paste0("awk '{if($2==", ix_hs, "){print}}' hotspot_dat/hs_", chr, ".txt > temp.dat")
+  N = runif(n=1, min=1e5, max=1e9)
+  cmd = paste0("awk '{if($2==", ix_hs, "){print}}' hotspot_dat/hs_", chr, ".txt > temp", N, ".dat")
   system(cmd)
-  dat = read_delim("temp.dat", delim=" ", col_names=FALSE)
+  dat = read_delim(paste0("temp", N, ".dat"), delim=" ", col_names=FALSE)
+  unlink(paste0("temp", N, ".dat"))
   names(dat)[1:2] = c("pos", "win")
   keep = which(dat$pos >= strt -buffer-bandwidth & dat$pos <= stp + buffer+bandwidth)
   dat = dat[keep,]
