@@ -40,6 +40,7 @@ dnase1_plot_region <- function(chr, strt, stp,
   if(length(ix_pk > 0)){
     wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse=";")
     bounds = rbind(bounds, data.frame(pk[ix_pk,], type="peak"))
+  }
   rm(peak_stats)
 
   #DESeq2 Statistics
