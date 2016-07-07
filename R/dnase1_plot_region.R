@@ -15,6 +15,10 @@ dnase1_plot_region <- function(chr, strt, stp,
   ix_hs = unlist(interval_overlap(myI, hs))
   stopifnot(length(ix_hs)==1)
 
+  #Interval boundaries
+  bounds = data.frame(hs[ix_hs,])
+  bounds$type="hotspot"
+
   wintest_res = matrix(nrow=4, ncol=2)
   ####Hotspot Peak
   #Huber
@@ -33,7 +37,9 @@ dnase1_plot_region <- function(chr, strt, stp,
   peak_stats = peak_stats[peak_stats$chr==chr, ]
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
-  if(length(ix_pk > 0)) wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse=";")
+  if(length(ix_pk > 0)){
+    wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse=";")
+    bounds = rbind(bounds, data.frame(pk[ix_pk,], type="peak"))
   rm(peak_stats)
 
   #DESeq2 Statistics
@@ -49,8 +55,8 @@ dnase1_plot_region <- function(chr, strt, stp,
   pk = Intervals(peak_stats[, c("winstart", "winstop")])
   ix_pk = unlist(interval_overlap(myI, pk))
   if(length(ix_pk)> 0){
-    wintest_res[2, 2] = paste0(format(peak_stats$qvalue[ix2], digits=2), collapse=";")
-    wintest_res[3, 2] = paste0(format(peak_stats$padj[ix2], digits=2), collapse=";")
+    wintest_res[2, 2] = paste0(format(peak_stats$qvalue[ix_pk], digits=2), collapse=";")
+    wintest_res[3, 2] = paste0(format(peak_stats$padj[ix_pk], digits=2), collapse=";")
   }
   rm(peak_stats)
 
@@ -61,7 +67,8 @@ dnase1_plot_region <- function(chr, strt, stp,
   ix_wl = unlist(interval_overlap(myI, wl))
   if(length(ix_wl) > 0) {
     rr = round(wellington[ix_wl, 5], digits=2)
-    wintest_res[4, 1] = paste0(rr, wellington[ix_wl, c( 7)], collapse=" ")
+    wintest_res[4, 1] = paste(as.matrix(rr), as.matrix(wellington[ix_wl, 7]), collapse=";", sep="")
+    bounds = rbind(bounds, data.frame(wl[ix_wl,], type="wellington"))
   }
 
   wintest_res = data.frame(wintest_res)
@@ -94,7 +101,7 @@ dnase1_plot_region <- function(chr, strt, stp,
   fret_ref  = read_delim(paste0("discopony_output/", chr, "/", chr, "_ref.txt"), delim=" ", col_names=FALSE)
   fret_ref = Intervals(fret_ref[, 2:3])
   ix_fret_chr = unlist(interval_overlap(myI, fret_ref))
-  fdr_levels=c(0.5, 0.2, 0.1, 0.08, 0.05, 0.04)
+  fdr_levels=c(0.1, 0.07, 0.06, 0.05, 0.04)
   if(length(ix_fret_chr)==0){
     cat("No FRET statistics in this region. Recalculating\n")
     ss = huber_helper(as.matrix(dat)[, -c(1, 2)], X$X2)
@@ -113,20 +120,49 @@ dnase1_plot_region <- function(chr, strt, stp,
     R <- getobj("discopony_thresh_fdr.RData")
     ix_fret = which(names(R$Robs)==fret_dat$file)
     stat_at_fdr = approx(y=R$z[,ix_fret], x=R$fdr, xout = fdr_levels)$y
-    stat_at_fdr = data.frame(cbind( rep(fdr_levels, each=2), c(-1, 1)*stat_at_fdr))
-    names(stat_at_fdr) = c("fdr", "stat")
+    #stat_at_fdr = data.frame(cbind(rep(fdr_levels, 2), c(stat_at_fdr, -1*stat_at_fdr)))
+    #names(stat_at_fdr) = c("fdr", "stat")
   }
   dat=dat[keep,]
   datlong = gather(dat, "sample", "count", -pos, -win)
   datlong$Sensitve = factor(X$X2[match(datlong$sample, X$nn)])
 
+  bounds$y = rep(1, nrow(bounds))
+  bounds$y[bounds$type=="hotspot"] = -1
+  bounds$y[bounds$type=="peak"] = -2
+  bounds$y[bounds$type=="wellington"] = -3
+  bounds$color = c("orange", "skyblue", "violet")[-1*bounds$y]
+
   dataplot = ggplot(datlong) + geom_line(aes(x=pos, y=count, group=sample, color=Sensitve)) +
-        theme_bw() + xlab("Position") + ylab("DNase 1 Sensitivity")
+        theme_bw(18) + xlab("Position") + ylab("DNase 1 Sensitivity") +
+        scale_color_manual(values=c("navyblue", "chartreuse3"))+
+    geom_rect(aes(xmin=X1, xmax=X2, ymin=y-0.3, ymax=y+0.3), col="black",
+              fill=bounds$color, data=bounds, lwd=0.5, alpha=0.5)+
+    theme(legend.position="none", panel.grid=element_blank())
 
-  statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat)) + xlab("Statistic") + ylab("Position")
-  if(length(ix_fret_chr)==1) statplot = statplot + geom_hline(data=stat_at_fdr, aes(yintercept=stat, col=fdr))
-  statplot = statplot + geom_hline(yintercept = c(-1, 1)*0.9, col="red") + theme_bw()
+  statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat)) +
+    geom_hline(yintercept = c(-1, 1)*0.9, col="red") + theme_bw(18) +
+    theme(panel.grid=element_blank()) +
+    scale_y_continuous(limits=range(stat.data$stat)) +
+    xlab("Position") + ylab("Smoothed Statistic")
+  if(length(ix_fret_chr)==1){
+    yy = rep(fdr_levels, 2)
+    xx = c(stat_at_fdr, -1*stat_at_fdr)
+    df = data.frame(stat=xx, fdr=format(yy))
+    ax = 0.14*(max(dat$pos)-min(dat$pos))
+    statplot = statplot +
+      geom_text( data=df, aes(y=stat, label=fdr, x=Inf), hjust=-0.2)+
+      geom_hline(yintercept = xx, lty=3) +
+      theme(plot.margin=unit(c(1, 5, 2, 1), "lines"))
+    gt <- ggplot_gtable(ggplot_build(statplot))
+    gt$layout$clip[gt$layout$name=="panel"] <- "off"
+    h=grid.arrange(rbind(ggplotGrob(dataplot), gt, size="last"),
+                   tableGrob(wintest_res, rows=NULL), nrow=2 , heights=c(8, 2))
+  }else{
+    h=grid.arrange(rbind(ggplotGrob(dataplot), ggplotGrob(statplot), size="last"),
+                   tableGrob(wintest_res, rows=NULL), nrow=2 , heights=c(8, 2))
+  }
 
-  return(list("dataplot"=dataplot, "statplot"=statplot, "wintest_res"=wintest_res))
+  return(list("plot"=h, "dataplot"=dataplot, "statplot"=statplot, "wintest_res"=wintest_res))
 
 }
