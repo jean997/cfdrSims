@@ -277,13 +277,16 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
   #Four collumns for each stat: beta, se, stat, p-value
   res <- apply(dat, MARGIN=1, FUN=function(x){
     y <- as.numeric(x[2:26])
-    c(x[1], x[27], x[28], huber_reg(y, labs), pois_reg(y, labs), tt(y, labs))
+    sum0 = sum(y[labs==0])
+    sum1 = sum(y[labs==1])
+    c(x[1], x[27], x[28], huber_reg(y, labs), pois_reg(y, labs), tt(y, labs), sum0, sum1)
   })
   res <- data.frame(t(res))
   nms <- c("Window", "Start", "Stop")
   nms <- c(nms, paste0("Huber", c("Beta", "SE", "Stat", "P")))
   nms <- c(nms, paste0("Pois", c("Beta", "SE", "Stat", "P")))
   nms <- c(nms, paste0("T", c("Beta", "SE", "Stat", "P")))
+  nms <- c(nms, "total0", "total1")
   names(res) <- nms
   cat("\n")
   return(res)
