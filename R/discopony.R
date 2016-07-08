@@ -320,7 +320,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
   pvals = c()
   for(w in wins){
     cat(w, " ")
-    pos = win.bound[w,1]:(win.bound[w,2]-1)
+    pos = win.bound[w,1]:win.bound[w,2]
     n = length(pos)
     stopifnot(log2(n)==trunc(log2(n)))
     pdat = dat[dat$win==w & (!dat$pos == win.bound[w,2]), ]
