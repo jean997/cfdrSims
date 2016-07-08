@@ -312,6 +312,8 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
   cat(dim(win.bound)[1], " total windows")
   wins = unique(dat$win)
   if(!is.null(win.range)){
+    ix = which(dat$win >= win.range[1] & dat$win <= win.range[2])
+    dat = dat[ix,]
     wins=wins[wins >= win.range[1] & wins <= win.range[2]]
   }
   win.bound = as.matrix(win.bound[, 2:3])
