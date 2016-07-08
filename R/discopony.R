@@ -212,7 +212,7 @@ discopony_pull_regions <- function(results.file, thresh){
     if(df$chr[i]!=c){
       c <- df$chr[i]
       cat(c, "..")
-      fn <- paste0(c, "/", c, "_maxes.RData")
+      fn <- paste0("discopony_output/", c, "/", c, "_maxes.upd.RData")
       ff <- getobj(fn)
       my.names <- sapply(ff, FUN=function(f){f$file})
     }
