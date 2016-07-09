@@ -325,7 +325,9 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     pos = win.bound[w,1]:win.bound[w,2]
     n = length(pos)
     stopifnot(log2(n)==trunc(log2(n)))
-    pdat = dat[dat$win==w & (!dat$pos == win.bound[w,2]), ]
+    ix = which(dat$win==w)
+    pdat = dat[ix, ]
+    dat = dat[-ix,]
     pheno.dat <- matrix(0, nrow=n, ncol=25)
     ix = match(pdat$pos, pos)
     pheno.dat[ix,] = as.matrix(pdat[, 3:27])
