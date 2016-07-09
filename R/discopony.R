@@ -128,24 +128,28 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
 #'@param nlam Number of lambda values to consider
 #' @return A list with items z, Robs, and fdr.
 #'@export
-discopony_choose_z <- function(file.list, zmin, nlam){
-  log.lambda.min <- Inf
-  log.lambda.max <- -Inf
-  nbp <- 0
-  n.chunk <- 0
-  names <- c()
-  for(f in file.list){
-    R <- getobj(f)
-    for(i in 1:length(R)){
-      log.lambda.min <- min(log.lambda.min, log10(R[[i]]$mx[,2][R[[i]]$mx[,2] > 0 & R[[i]]$mx[,1] >=zmin]))
-      log.lambda.max <- max(log.lambda.max, log10(R[[i]]$mx[,2][R[[i]]$mx[,1] >=zmin]))
-      names <- c(names, R[[i]]$file)
-      nbp <- nbp + R[[i]]$nbp
-    }
-    n.chunk <- n.chunk + length(R)
-  }
-  lams <- seq(log.lambda.min, log.lambda.max, length.out=nlam)
+discopony_choose_z <- function(file.list, zmin, nlam, log.lambda.min=NULL, log.lambda.max=NULL){
 
+  if(is.null(log.lambda.min)){
+    log.lambda.min <- Inf
+    log.lambda.max <- -Inf
+    nbp <- 0
+    n.chunk <- 0
+    names <- c()
+    for(f in file.list){
+      R <- getobj(f)
+      for(i in 1:length(R)){
+        log.lambda.min <- min(log.lambda.min, log10(R[[i]]$mx[,2][R[[i]]$mx[,2] > 0 &  R[[i]]$mx[,1] >=zmin]))
+        log.lambda.max <- max(log.lambda.max, log10(R[[i]]$mx[,2][R[[i]]$mx[,1] >=zmin]))
+        names <- c(names, R[[i]]$file)
+        nbp <- nbp + R[[i]]$nbp
+      }
+      n.chunk <- n.chunk + length(R)
+    }
+    lams <- seq(log.lambda.min, log.lambda.max, length.out=nlam)
+  }else{
+    lams <- seq(log.lambda.min, log.lambda.max, length.out=nlam)
+  }
   n.seg <- length(file.list)
   z <- matrix(nrow=nlam, ncol=n.chunk+1)
   Robs <- matrix(nrow=nlam, ncol=n.chunk + 1)
