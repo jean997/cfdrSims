@@ -129,7 +129,6 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
 #' @return A list with items z, Robs, and fdr.
 #'@export
 discopony_choose_z <- function(file.list, zmin, nlam, log.lambda.min=NULL, log.lambda.max=NULL){
-
   if(is.null(log.lambda.min)){
     log.lambda.min <- Inf
     log.lambda.max <- -Inf
@@ -144,28 +143,28 @@ discopony_choose_z <- function(file.list, zmin, nlam, log.lambda.min=NULL, log.l
   }else{
     lams <- seq(log.lambda.min, log.lambda.max, length.out=nlam)
   }
+
   names <- c()
   nbp <- 0
-  n.chunk <- 0
   n.seg <- length(file.list)
-  z <- matrix(nrow=nlam, ncol=n.chunk+1)
-  Robs <- matrix(nrow=nlam, ncol=n.chunk + 1)
+  z <- matrix(nrow=nlam, ncol=1)
+  Robs <- matrix(nrow=nlam, ncol=1)
   z[,1] <- Robs[, 1] <- lams
   ct <- 1
   for(f in file.list){
     R <- getobj(f)
     for(i in 1:length(R)){
       if(nrow(R[[i]]$mx)==1 & R[[i]]$mx[1, 2]==0){
-        z[, ct+1] = zmin
-        Robs[, ct + 1] = sum(R[[i]]$max1 >= zmin)
+        #No permutation peaks ever reached zmin --> zmin is the threshold for all lambda
+        z = cbind(z, rep(zmin, nlam))
+        Robs = cbind(Robs, rep(sum(R[[i]]$max1 >= zmin), nlam))
       }else{
-        z[, ct + 1] <- approx(y=R[[i]]$mx[,1], x=log10(R[[i]]$mx[,2]),
-                              xout=lams, yright=zmin, yleft=Inf)$y
-        Robs[, ct + 1] <- sapply(z[, ct+1], FUN=function(zz){sum(R[[i]]$max1 > zz)})
+        z <- cbind(z, approx(y=R[[i]]$mx[,1], x=log10(R[[i]]$mx[,2]),
+                              xout=lams, yright=zmin, yleft=Inf)$y)
+        Robs <- cbind(Robs, sapply(z[, ct+1], FUN=function(zz){sum(R[[i]]$max1 > zz)}))
       }
       names <- c(names, R[[i]]$file)
       nbp <- nbp + R[[i]]$nbp
-      n.chunk <- n.chunk + length(R)
       ct = ct + 1
     }
   }
