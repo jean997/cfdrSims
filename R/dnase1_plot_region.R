@@ -10,7 +10,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   #Find which hotspot (if any)
   hotspots = read_delim("merged_hotspots.bed", delim="\t", col_names=FALSE)
   #Figure out which hotspot overlaps
-  hotspots = hotspots[hs$X1==chr,]
+  hotspots = hotspots[hotspots$X1==chr,]
   library(intervals)
   hs = Intervals(hotspots[, 2:3])
   ix_hs = unlist(interval_overlap(myI, hs))
