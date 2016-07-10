@@ -18,12 +18,14 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
 
   #Interval boundaries
   bounds <-matrix(nrow=0, ncol=3)
-  wintest_res = matrix(nrow=4, ncol=2)
+  wintest_res = matrix(nrow=5, ncol=2)
   ####Hotspot Peak
   #Huber
   #Deseq2 Qvalue
   #DESeq2 padj
+  #WaveQTL
   #Wellington
+
 
   #Stats in hotspots
   if(length(ix_hs) > 0){
@@ -64,6 +66,13 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     wintest_res[2, 2] = paste0(format(peak_stats$qvalue[ix_pk], digits=2), collapse=";")
     wintest_res[3, 2] = paste0(format(peak_stats$padj[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
+    #WaveQTL
+    peak_stats = getobj("peak_dat/wave_all_tests.RData")
+    peak_stats = peak_stats[peak_stats$chr==chr, ]
+    stopifnot(all(peak_stats$winstart==peaks$X2))
+    wintest_res[4, 2] = paste0(format(peak_stats$qvalue[ix_pk], digits=2), collapse=";")
+    rm(peak_stats)
+
   }
 
   #Wellington Stats
@@ -73,13 +82,13 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   ix_wl = unlist(interval_overlap(myI, wl))
   if(length(ix_wl) > 0) {
     rr = round(wellington[ix_wl, 5], digits=2)
-    wintest_res[4, 1] = paste(as.matrix(rr), as.matrix(wellington[ix_wl, 7]), collapse=";", sep="")
+    wintest_res[5, 1] = paste(as.matrix(rr), as.matrix(wellington[ix_wl, 7]), collapse=";", sep="")
     bounds <- rbind(bounds, cbind(rep("wellington", length(ix_wl)), wl[ix_wl,]))
   }
 
   wintest_res <- data.frame(wintest_res)
   names(wintest_res) <- c("Hotspot", "Peak")
-  wintest_res$Test <- c("Huber", "DESeq2-Q", "DESeq2 -QIF", "Wellington")
+  wintest_res$Test <- c("Huber", "DESeq2-Q", "DESeq2 -QIF", "WaveQTL", "Wellington")
   wintest_res <- wintest_res[, c("Test", "Hotspot", "Peak")]
 
   #Read data
