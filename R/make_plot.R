@@ -105,20 +105,106 @@ make_sim_legend <- function(){
   return(list(p, points))
 }
 
-plot_fdr <- function(){
+plot_nregion <- function(){
+
+  #FRET
   df = getobj("region_counts.RData")
-  #For some reason the legend is backwards
   names(df)= c("fdr", "total",  "Regions overlapping peaks")
   df$`All regions` = df$total - df$`Regions overlapping peaks`
-  #names(df)= c("fdr", "Regions overlapping peaks", "All regions")
-
+  ymax = max(df$total)
   dflong = gather(df, "class", "count", -fdr ,-total)
   dflong$class=factor(dflong$class, levels=rev(levels(dflong$class)))
-  h = ggplot(dflong) + geom_area(aes(x=fdr, y = count, fill=class), alpha=0.5) +
+  gridlines = seq(10000, ymax, by=10000)
+  h_fret = ggplot(dflong) + geom_area(aes(x=fdr, y = count, fill=class), alpha=0.5) +
     ylab("Number of Regions") + xlab("rFDR Threshold") +
-    scale_x_continuous(breaks=c(0.04, 0.06, 0.08, 0.1, 0.15, 0.2), limits=c(0.03, 0.2))+
+    scale_x_continuous(breaks=seq(0.04, 0.2, by=0.02), limits=c(0.03, 0.2))+
     scale_fill_manual(values=c("darkorange1", "blue"))+
+    geom_hline(yintercept = gridlines, lty=3) +
     theme_bw(12) + theme(panel.grid=element_blank(),
                          legend.position=c(0.3, 0.9), legend.title=element_blank())
-  ggsave(h, file="~/Dropbox/Thesis/img/fret_results.png", height=5, width=5, units="in", dpi=300)
+
+  #Wellington Bootstrap
+  df = getobj("region_counts_well.RData")
+  names(df)= c("score", "total",  "Footprints overlapping peaks")
+  df=df[df$score >=10,]
+  ymax = max(df$total)
+  df$`All footprints` = df$total - df$`Footprints overlapping peaks`
+
+  dflong = gather(df, "class", "count", -score ,-total)
+  dflong$class=factor(dflong$class, levels=rev(levels(dflong$class)))
+  gridlines = seq(10000, ymax, by=10000)
+  h_well = ggplot(dflong) + geom_area(aes(x=score, y = count, fill=class), alpha=0.5) +
+    ylab("Number of Footprints") + xlab("Score") +
+    scale_x_reverse(breaks=seq(10, 100, by=20), limits=c(100, 10))+
+    scale_fill_manual(values=c("darkorange1", "blue"))+
+    geom_hline(yintercept = gridlines, lty=3) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.position=c(0.3, 0.9), legend.title=element_blank())
+
+  #Huber
+  df = getobj("region_counts_huber.RData")
+  names(df)= c("fdr", "total")
+  ymax = max(df$total)
+  gridlines = seq(10000, ymax, by=10000)
+  h_huber = ggplot(df) + geom_area(aes(x=fdr, y = total), fill="blue", alpha=0.5) +
+    ylab("Number of Peaks") + xlab("FDR Threshold") +
+    geom_hline(yintercept = gridlines, lty=3) +
+    scale_x_continuous(breaks=seq(0, 0.2, by=0.02), limits=c(0, 0.2))+
+    theme_bw(12) + theme(panel.grid=element_blank())
+
+
+  #DESeq2
+  df = getobj("region_counts_deseq2.RData")
+  names(df)= c("fdr", "total")
+  ymax = max(df$total)
+  gridlines = seq(10000, ymax, by=10000)
+  h_deseq2 = ggplot(df) + geom_area(aes(x=fdr, y = total), fill="blue", alpha=0.5) +
+    ylab("Number of Peaks") + xlab("FDR Threshold") +
+    scale_x_continuous(breaks=seq(0, 0.2, by=0.02), limits=c(0, 0.2))+
+    geom_hline(yintercept = gridlines, lty=3) +
+    theme_bw(12) + theme(panel.grid=element_blank())
+
+  #Waveqtl
+  df = getobj("region_counts_wave.RData")
+  names(df)= c("fdr", "total")
+  ymax = max(ymax, max(df$total))
+  h_wave = ggplot(df) + geom_area(aes(x=fdr, y = total), fill="blue", alpha=0.5) +
+    ylab("Number of Peaks") + xlab("FDR Threshold") +
+    scale_x_continuous(breaks=c(0.04, 0.06, 0.08, 0.1, 0.15, 0.2), limits=c(0, 0.2))+
+    theme_bw(12) + theme(panel.grid=element_blank())
+
+
+  #Titles and scales
+  h_fret = h_fret + ggtitle("(a) FRET")
+  h_well = h_well + ggtitle("(b) Wellington-Bootstrap")
+  h_huber = h_huber + ggtitle("(b) Huber Fixed-Window Test")
+  h_deseq2 = h_deseq2 + ggtitle("(b) DESeq2")
+  h_wave = h_wave + ggtitle("(b) WaveQTL")
+
+  ggsave(h_fret, file="~/Dropbox/Thesis/img/fret_results.png", height=5, width=5, units="in", dpi=300)
+  ggsave(h_well, file="~/Dropbox/Thesis/img/well_results.png", height=5, width=5, units="in", dpi=300)
+  ggsave(h_huber, file="~/Dropbox/Thesis/img/huber_results.png", height=5, width=5, units="in", dpi=300)
+  ggsave(h_deseq2, file="~/Dropbox/Thesis/img/deseq2_results.png", height=5, width=5, units="in", dpi=300)
+  ggsave(h_wave, file="~/Dropbox/Thesis/img/wave_results.png", height=5, width=5, units="in", dpi=300)
+}
+
+#'@export
+thin_qqplot <- function(pvals, thin=c(0.25, 100)){
+  n <- length(pvals)
+  pvals <- sort(pvals)
+  v = qunif(p=seq(0, 1, length.out = n+1)[2:(n+1)])
+  v = -log10(v)
+  q = quantile(v, probs=thin[1])
+  q_idx = max(which(v <= q))
+  thin_idx = unique(ceiling(seq(1, q_idx, length.out=thin[2])))
+  thin_idx = c(thin_idx, q_idx:n)
+  v=v[thin_idx]
+  pvals = -log10(pvals[thin_idx])
+  df = data.frame("pval"=pvals, "v"=v)
+  h = ggplot(df) + geom_point(aes(x=v, y=pval), shape=1) +
+    geom_abline(slope=1, intercept=0) +
+    xlab("-log(Expected p-value)") +
+    ylab("-log(Observed p-value)") +
+    theme_bw(12) + theme(panel.grid=element_blank())
+  return(h)
 }
