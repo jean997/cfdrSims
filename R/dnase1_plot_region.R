@@ -5,14 +5,14 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
                                bandwidth=50, buffer=300){
 
   options("scipen"=3)
+  myI = Intervals(c(strt, stp))
 
   #Find which hotspot (if any)
-  hs = read_delim("merged_hotspots.bed", delim="\t", col_names=FALSE)
+  hotspots = read_delim("merged_hotspots.bed", delim="\t", col_names=FALSE)
   #Figure out which hotspot overlaps
-  hs = hs[hs$X1==chr,]
+  hotspots = hotspots[hs$X1==chr,]
   library(intervals)
-  hs = Intervals(hs[, 2:3])
-  myI = Intervals(c(strt, stp))
+  hs = Intervals(hotspots[, 2:3])
   ix_hs = unlist(interval_overlap(myI, hs))
   stopifnot(length(ix_hs) <2) #No regions overlapping two hotspots.
 
@@ -31,35 +31,36 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     #Huber Statistics
     hotspot_stats = getobj("hotspot_dat/hs_all_tests_s0-0.05.RData")
     hotspot_stats = hotspot_stats[hotspot_stats$chr==chr,]
-    ix2 = which(hotspot_stats$Window==ix_hs)
-    wintest_res[1, 1] = format(hotspot_stats$HuberQ_05[ix2], digits=2)
+    stopifnot(all(hotspot_stats$winstart==hotspots$X2))
+    wintest_res[1, 1] = format(hotspot_stats$HuberQ_05[ix_hs], digits=2)
     rm(hotspot_stats)
 
     #DESeq2 Statistics
     hotspot_stats = getobj("deseq2_analysis/hs_deseq2.RData")
     hotspot_stats = hotspot_stats[hotspot_stats$chr==chr,]
-    ix2 = which(hotspot_stats$winstart==hs[ix_hs,1])
-    wintest_res[2, 1] = format(hotspot_stats$qvalue[ix2], digits=2)
-    wintest_res[3, 1] = format(hotspot_stats$padj[ix2], digits=2)
+    stopifnot(all(hotspot_stats$winstart==hotspots$X2))
+    wintest_res[2, 1] = format(hotspot_stats$qvalue[ix_hs], digits=2)
+    wintest_res[3, 1] = format(hotspot_stats$padj[ix_hs], digits=2)
     rm(hotspot_stats)
   }
   #Find which peak if any
-  peaks = read_delim("master.pks.merged.bed", delim="\t", col_names=FALSE)
-  pk = Intervals(peaks[, 2:3])
-  ix_pk = unlist(interval_overlap(myI, pk))
+  peaks <- read_delim("master.pks.merged.bed", delim="\t", col_names=FALSE)
+  peaks <- peaks[peaks$X1 == chr,]
+  pk <- Intervals(peaks[, 2:3])
+  ix_pk <- unlist(interval_overlap(myI, pk))
 
   if(length(ix_pk) > 0){
-    bounds = rbind(bounds, cbind(rep("peak", length(ix_pk)), pk[ix_pk,]))
+    bounds <- rbind(bounds, cbind(rep("peak", length(ix_pk)), pk[ix_pk,]))
     #Huber
-    peak_stats = getobj("hotspot_dat/peak_all_tests_s0-0.05.RData")
-    stopifnot(all(peak_stats$chr==peaks$X1) & all(peak_stats$winstart==peaks$X2))
+    peak_stats = getobj("peak_dat/peak_all_tests_s0-0.05.RData")
     peak_stats = peak_stats[peak_stats$chr==chr, ]
+    stopifnot(all(peak_stats$winstart==peaks$X2))
     wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
     #Deseq2
-    peak_stats = getobj("deseq2_analysis/peak_deseq2.RData")
-    stopifnot(all(peak_stats$chr==peaks$X1) & all(peak_stats$winstart==peaks$X2))
-    peak_stats = peak_stats[peak_stats$chr==chr,]
+    peak_stats = getobj("deseq2_analysis/peak_merged_deseq2.RData")
+    peak_stats = peak_stats[peak_stats$chr==chr, ]
+    stopifnot(all(peak_stats$winstart==peaks$X2))
     wintest_res[2, 2] = paste0(format(peak_stats$qvalue[ix_pk], digits=2), collapse=";")
     wintest_res[3, 2] = paste0(format(peak_stats$padj[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
