@@ -168,6 +168,7 @@ discopony_choose_z <- function(file.list, zmin, nlam, log.lambda.min=NULL, log.l
       }else{
         z[, ct+1] <- approx(y=R[[i]]$mx[,1], x=log10(R[[i]]$mx[,2]),
                               xout=lams, yright=zmin, yleft=Inf)$y
+        z[, ct+1] <- pmin(zmin, z[, ct+1])
         Robs[, ct+1] <- sapply(z[, ct+1], FUN=function(zz){sum(R[[i]]$max1 > zz)})
       }
       names <- c(names, R[[i]]$file)
