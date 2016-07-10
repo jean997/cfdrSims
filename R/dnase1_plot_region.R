@@ -17,7 +17,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   stopifnot(length(ix_hs) <2) #No regions overlapping two hotspots.
 
   #Interval boundaries
-  bounds <- data.frame(matrix(nrow=0, ncol=3))
+  bounds <-matrix(nrow=0, ncol=3)
   wintest_res = matrix(nrow=4, ncol=2)
   ####Hotspot Peak
   #Huber
@@ -131,9 +131,10 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     stat_at_fdr = approx(y=R$z[,ix_fret], x=R$fdr, xout = fdr_levels)$y
   }
   dat=dat[keep,]
-  datlong = gather(dat, "sample", "count", -pos, -win)
-  datlong$Sensitve = factor(X$X2[match(datlong$sample, X$nn)])
+  datlong <- gather(dat, "sample", "count", -pos, -win)
+  datlong$Sensitve <- factor(X$X2[match(datlong$sample, X$nn)])
 
+  bounds <- data.frame(bounds)
   names(bounds)=c("start", "stop", "type")
   bounds$y = rep(1, nrow(bounds))
   bounds$y[bounds$type=="hotspot"] = -1
