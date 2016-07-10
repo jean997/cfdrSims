@@ -275,7 +275,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
   tt <- function(y, labs){
     b <- mean(y[labs==1]-mean(y[labs==0]))
     s <- sqrt( var(y[labs==1])/sum(labs==1) + var(y[labs==0])/sum(labs==0))
-    return(c(b, s, b/s, tp(b/s, df=length(y)/2-1)))
+    return(c(b, s, b/s, tp(b/s, df=length(y)-2)))
   }
 
   dat <- getobj(dat.file)
@@ -305,7 +305,8 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
 
 #'@export
 dnase1_run_waveqtl <- function(dat.file, pheno.file,
-                               window.file, waveQTL_loc, chr,nperm=1000, win.range=NULL){
+                               window.file, waveQTL_loc, chr,nperm=1000, 
+                              which.wins=NULL){
   #Read data. Dat file has first two columns as pos and win
   dat <- read_delim(dat.file, delim=" ")
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
@@ -322,13 +323,14 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
   win.bound = win.bound[win.bound$X1==chr,]
   cat(dim(win.bound)[1], " total windows")
   wins = unique(dat$win)
-  if(!is.null(win.range)){
-    ix = which(dat$win >= win.range[1] & dat$win <= win.range[2])
+  if(!is.null(which.wins)){
+    ix = which(dat$win %in% which.wins)
     dat = dat[ix,]
-    wins=wins[wins >= win.range[1] & wins <= win.range[2]]
+    wins=wins[wins %in% which.wins]
+    #win.bound <- win.bound[wins, ]
   }
   win.bound = as.matrix(win.bound[, 2:3])
-  cat(dim(win.bound)[1], " windows to analyze")
+  cat(length(wins), " windows to analyze")
 
   pvals = c()
   for(w in wins){
@@ -342,12 +344,12 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     pheno.dat <- matrix(0, nrow=n, ncol=25)
     ix = match(pdat$pos, pos)
     pheno.dat[ix,] = as.matrix(pdat[, 3:27])
-    res <- WaveQTL_preprocess(Data = t(pheno.dat), meanR.thresh = 0)
+    res <- cfdrSims:::WaveQTL_preprocess(Data = t(pheno.dat), meanR.thresh = 0)
     f <- tempfile(tmpdir = ".")
     write.table(res$WCs, file=paste0(f, "_pheno.txt"), row.names=FALSE, col.names=FALSE, quote=FALSE)
     cat(res$filtered.WCs, file=paste0(f, "_use.txt"))
     cmd <- paste0(waveQTL_loc, " -gmode 1 -g geno_", N, ".txt -p ",
-                f, "_pheno.txt -u ", f, "_use.txt -o temp", N, " -f ", n, " -numPerm ",nperm, " -fph 2")
+                f, "_pheno.txt -u ", f, "_use.txt -o temp", N, " -f ", n, " -numPerm ", format(nperm, scientific=FALSE), " -fph 2")
     system(cmd)
     pval <- read.table(paste0("output/temp", N, ".fph.pval.txt"), header=TRUE)
     pvals <- c(pvals, pval[3, 1])
@@ -356,7 +358,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     unlink(paste0("output/temp", N, "*"))
   }
   cat("\n")
-  win.bound <- win.bound[wins, ]
+  win.bound = win.bound[wins,]
   ret <- data.frame(cbind(win.bound, pvals))
   names(ret) = c("start", "stop", "pval")
   ret$chr = chr
