@@ -189,22 +189,38 @@ plot_nregion <- function(){
 }
 
 #'@export
-thin_qqplot <- function(pvals, thin=c(0.25, 100)){
+thin_qqplot <- function(pvals, thin=c(0.25, 100), shade=TRUE){
   n <- length(pvals)
   pvals <- sort(pvals)
   v = qunif(p=seq(0, 1, length.out = n+1)[2:(n+1)])
   v = -log10(v)
   q = quantile(v, probs=thin[1])
-  q_idx = max(which(v <= q))
+  q_idx = min(which(v <= q))
   thin_idx = unique(ceiling(seq(n-q_idx, n, length.out=thin[2])))
   thin_idx = c(1:(n-q_idx))
   v=v[thin_idx]
   pvals = -log10(pvals[thin_idx])
-  df = data.frame("pval"=pvals, "v"=v)
-  h = ggplot(df) + geom_point(aes(x=v, y=pval), shape=1) +
+
+  #Shading
+  if(shade){
+    c975 <- sapply(thin_idx, FUN=function(i){
+      qbeta(0.975, i, n - i + 1)
+    })
+    c025 <- sapply(thin_idx, FUN=function(i){
+      qbeta(0.025, i, n - i + 1)
+    })
+    df.shade = data.frame("x"=c(v, rev(v)), "y"=c(-log10(c025), rev(-log10(c975))))
+  }
+
+
+
+  df <- data.frame("pval"=pvals, "v"=v)
+  h <- ggplot(df)
+  if(shade) h <-  h + geom_polygon(data=df.shade, aes(x=x, y=y), alpha=0.3, fill="black")
+  h <- h +  geom_point(aes(x=v, y=pval), shape=1) +
     geom_abline(slope=1, intercept=0) +
-    xlab("-log(Expected p-value)") +
-    ylab("-log(Observed p-value)") +
+    xlab(expression(Expected~~-log[10](italic( p )-value)))+
+    ylab(expression(Observed~~-log[10](italic( p )-value)))+
     theme_bw(12) + theme(panel.grid=element_blank())
   return(h)
 }
