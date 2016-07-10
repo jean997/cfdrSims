@@ -305,7 +305,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
 
 #'@export
 dnase1_run_waveqtl <- function(dat.file, pheno.file,
-                               window.file, waveQTL_loc, chr, win.range=NULL){
+                               window.file, waveQTL_loc, chr,nperm=1000, win.range=NULL){
   #Read data. Dat file has first two columns as pos and win
   dat <- read_delim(dat.file, delim=" ")
   X <- read_delim(pheno.file, col_names=FALSE, delim=" ")
@@ -347,7 +347,7 @@ dnase1_run_waveqtl <- function(dat.file, pheno.file,
     write.table(res$WCs, file=paste0(f, "_pheno.txt"), row.names=FALSE, col.names=FALSE, quote=FALSE)
     cat(res$filtered.WCs, file=paste0(f, "_use.txt"))
     cmd <- paste0(waveQTL_loc, " -gmode 1 -g geno_", N, ".txt -p ",
-                f, "_pheno.txt -u ", f, "_use.txt -o temp", N, " -f ", n, " -numPerm 10000000 -fph 2")
+                f, "_pheno.txt -u ", f, "_use.txt -o temp", N, " -f ", n, " -numPerm "nperm, " -fph 2")
     system(cmd)
     pval <- read.table(paste0("output/temp", N, ".fph.pval.txt"), header=TRUE)
     pvals <- c(pvals, pval[3, 1])
