@@ -8,7 +8,7 @@
 #'@param levels Levels in summ.files
 #' @return nothing
 #'@export
-make_plot <- function(tot.rates, names, ltys, cols, shapes,
+make_sim_plot <- function(tot.rates, names, ltys, cols, shapes,
                       levels=c(0.02, 0.05, 0.1, 0.2)){
 
 
@@ -24,37 +24,101 @@ make_plot <- function(tot.rates, names, ltys, cols, shapes,
   fdp <- tot.rates$avg.fdp[ix,]
   fdp <- data.frame(fdp)
 
-  tpr$type <- fdp$type <- as.factor(names)
+  tpr$type <- fdp$type <- names
   names(tpr) <- names(fdp) <- c(levels, "type")
   tprlong <- gather(tpr, "level", "tpr", -type, convert=TRUE)
   fdplong <- gather(fdp, "level", "fdp", -type, convert=TRUE)
-
+  tprlong$type = factor(tprlong$type, levels = names)
+  fdplong$type = factor(fdplong$type, levels = names)
   #tprlong$type <- relevel(tprlong$type, names)
   #fdplong$type <- relevel(fdplong$type, names)
 
-  tprplot <- ggplot(tprlong) + geom_line(aes(x=level, y=tpr, group=type, col=type, lty=type), lwd=2) +
-    geom_point(aes(x=level, y=tpr), size=12, colour="white", shape=20) +
-    geom_point(aes(x=level, y=tpr, col=type, shape=type), size=4) +
+  tprplot <- ggplot(tprlong) +
+    geom_line(aes(x=level, y=tpr, group=type, col=type, lty=type), lwd=1.3) +
+    geom_point(aes(x=level, y=tpr), size=5, colour="white", shape=20) +
+    geom_point(aes(x=level, y=tpr, col=type, shape=type), size=2, stroke=1.3) +
     theme_bw() + labs(x="Target FDR", y="Average True Positive Rate") +
     scale_color_manual(values=cols) +
     scale_linetype_manual(values=ltys) +
-    scale_shape_manual(values=shapes) +
+    scale_shape_manual(values=shapes) + ggtitle("True Positive Rate") +
     scale_x_continuous(breaks=levels, limits=c(0, max(levels))) +
     scale_y_continuous(limits = c(0, max(tot.rates$avg.tpr[ix,]))) +
-    theme(panel.grid=element_blank())
+    theme(panel.grid=element_blank(), legend.position="none")
 
   if(max(tot.rates$avg.fdp[ix,]) < max(levels)) ymx <- max(levels)
     else ymx <- max(tot.rates$avg.fdp[ix,])
-  fdpplot <- ggplot(fdplong) + geom_line(aes(x=level, y=fdp, group=type, col=type, lty=type), lwd=2) +
-    geom_point(aes(x=level, y=fdp), size=12, colour="white", shape=20) +
-    geom_point(aes(x=level, y=fdp, col=type, shape=type), size=4) +
+  fdpplot <- ggplot(fdplong) +
+    geom_line(aes(x=level, y=fdp, group=type, col=type, lty=type), lwd=1.3) +
+    geom_point(aes(x=level, y=fdp), size=5, colour="white", shape=20) +
+    geom_point(aes(x=level, y=fdp, col=type, shape=type), size=2, stroke=1.3) +
     geom_abline(slope=1, intercept=0) +
     theme_bw() + labs(x="Target FDR", y="Average False Discovery Proportion") +
     scale_color_manual(values=cols) +
     scale_linetype_manual(values=ltys) +
-    scale_shape_manual(values=shapes) +
+    scale_shape_manual(values=shapes) + ggtitle("False Discovery Rate") +
     scale_x_continuous(breaks=levels, limits=c(0, max(levels))) +
     scale_y_continuous(breaks=levels, limits = c(0, ymx)) +
-    theme(panel.grid=element_blank())
+    theme(panel.grid=element_blank(), legend.position="none")
   return(list("tprplot"=tprplot, "fdpplot"=fdpplot))
+}
+
+make_sim_legend <- function(){
+  points <- cbind(rep(c(1, 2, 3), each=3), rep(c(1, 1.5, 2.3), 3))
+  points <- data.frame(points)
+  names(points)=c("x", "y")
+  points$left = points$x-0.45
+  points$right = points$x + 0.45
+
+  points$lty = 1
+  points$lty[points$y==1] <- 2
+  points$lty[points$x==2 & points$y==2.3] <- 2
+  points$lty[points$x==3 & points$y==2.3] <- 3
+
+  points$cols <- "black"
+  points$cols[points$x==1 & points$y < 2] <- "blue"
+  points$cols[points$x==2 & points$y < 2] <- "violetRed"
+  points$cols[points$x==3 & points$y < 2] <- "chartreuse3"
+
+  points$shape = c(1, 1, 15, 2, 2, 16, 3, 3, 17)
+
+  points$name <- NA
+  points$name[points$col=="black"] <- paste0("fretHuber", c(1, 2, 6))
+  points$name[points$cols=="blue"] <- paste0(c("w64e", "w64b"), "DESeq2")
+  points$name[points$cols=="violetRed"] <- paste0(c("w64e", "w64b"), "Wave")
+  points$name[points$cols=="chartreuse3"] <- paste0(c("w64e", "w64b"), "Huber")
+
+  p <-ggplot(points) +
+    geom_segment(aes(x=left, xend=right, y=y, yend=y), lty=points$lty,
+                 colour=points$cols, lwd=1)+
+    geom_point(aes(x=x, y=y), col="white", shape=20, size=10)+
+    geom_point(aes(x=x, y=y), col=points$cols, shape=points$shape, size=2, stroke=1.3)+
+    annotate(geom="text", x=c(1, 2, 3), y=rep(2.8, 3),
+             label=c("FRET 1", "FRET 2", "FRET 6"), size=3)+
+    annotate(geom="text", x=c(1, 2, 3), y=rep(1.8, 3),
+             label=c("DESeq2", "WaveQTL", "Huber"), size=3)+
+    annotate(geom="text", x=c(4.2, 4.2), y=c(1, 1.5),
+             label=c("Naive Bins", "Informed Bins"), size=3)+
+    xlim(0.55, 4.5) +
+    theme_bw() + theme(panel.grid=element_blank(), axis.title=element_blank(),
+                       axis.text=element_blank(),
+                       panel.border=element_blank(), axis.ticks=element_blank())
+  return(list(p, points))
+}
+
+plot_fdr <- function(){
+  df = getobj("region_counts.RData")
+  #For some reason the legend is backwards
+  names(df)= c("fdr", "total",  "Regions overlapping peaks")
+  df$`All regions` = df$total - df$`Regions overlapping peaks`
+  #names(df)= c("fdr", "Regions overlapping peaks", "All regions")
+
+  dflong = gather(df, "class", "count", -fdr ,-total)
+  dflong$class=factor(dflong$class, levels=rev(levels(dflong$class)))
+  h = ggplot(dflong) + geom_area(aes(x=fdr, y = count, fill=class), alpha=0.5) +
+    ylab("Number of Regions") + xlab("rFDR Threshold") +
+    scale_x_continuous(breaks=c(0.04, 0.06, 0.08, 0.1, 0.15, 0.2), limits=c(0.03, 0.2))+
+    scale_fill_manual(values=c("darkorange1", "blue"))+
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.position=c(0.3, 0.9), legend.title=element_blank())
+  ggsave(h, file="~/Dropbox/Thesis/img/fret_results.png", height=5, width=5, units="in", dpi=300)
 }
