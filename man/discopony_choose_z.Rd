@@ -4,7 +4,8 @@
 \alias{discopony_choose_z}
 \title{Find thresholds for a range of lambda values. Calculate FDR.}
 \usage{
-discopony_choose_z(file.list, zmin, nlam)
+discopony_choose_z(file.list, zmin, nlam, log.lambda.min = NULL,
+  log.lambda.max = NULL)
 }
 \arguments{
 \item{file.list}{List of files. Each file should contain a list of objects produced by
