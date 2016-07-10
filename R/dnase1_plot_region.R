@@ -137,6 +137,8 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
 
   bounds <- data.frame(bounds, stringsAsFactors=FALSE)
   names(bounds)=c("type", "start", "stop")
+  bounds$start = as.numeric(bounds$start)
+  bounds$stop = as.numeric(bounds$stop)
   bounds$y = rep(1, nrow(bounds))
   bounds$y[bounds$type=="hotspot"] = -1
   bounds$y[bounds$type=="peak"] = -2
