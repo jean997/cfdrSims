@@ -27,7 +27,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
 
   #Stats in hotspots
   if(length(ix_hs) > 0){
-    bounds <- rbind(bounds, c("Hotspot", hs[ix_hs,]))
+    bounds <- rbind(bounds, c("hotspot", hs[ix_hs,]))
     #Huber Statistics
     hotspot_stats = getobj("hotspot_dat/hs_all_tests_s0-0.05.RData")
     hotspot_stats = hotspot_stats[hotspot_stats$chr==chr,]
