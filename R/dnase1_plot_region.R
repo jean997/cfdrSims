@@ -148,7 +148,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   dataplot = ggplot(datlong) + geom_line(aes(x=pos, y=count, group=sample, color=Sensitve)) +
         theme_bw(18) + xlab("Position") + ylab("DNase 1 Sensitivity") +
         scale_color_manual(values=c("navyblue", "chartreuse3"))+
-        geom_rect(aes(xmin=X1, xmax=X2, ymin=y-0.3, ymax=y+0.3), col="black",
+        geom_rect(aes(xmin=start, xmax=stop, ymin=y-0.3, ymax=y+0.3), col="black",
               fill=bounds$color, data=bounds, lwd=0, alpha=0.5)+
         theme(legend.position="none", panel.grid=element_blank())
 
