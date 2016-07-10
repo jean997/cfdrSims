@@ -196,8 +196,8 @@ thin_qqplot <- function(pvals, thin=c(0.25, 100)){
   v = -log10(v)
   q = quantile(v, probs=thin[1])
   q_idx = max(which(v <= q))
-  thin_idx = unique(ceiling(seq(1, q_idx, length.out=thin[2])))
-  thin_idx = c(thin_idx, q_idx:n)
+  thin_idx = unique(ceiling(seq(n-q_idx, n, length.out=thin[2])))
+  thin_idx = c(1:(n-q_idx))
   v=v[thin_idx]
   pvals = -log10(pvals[thin_idx])
   df = data.frame("pval"=pvals, "v"=v)
