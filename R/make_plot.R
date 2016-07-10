@@ -189,7 +189,7 @@ plot_nregion <- function(){
 }
 
 #'@export
-thin_qqplot <- function(pvals, thin=c(0.25, 100), shade=TRUE){
+thin_qqplot <- function(pvals, thin=c(0.25, 100), shade=TRUE, truncate=Inf){
   n <- length(pvals)
   pvals <- sort(pvals)
   v = qunif(p=seq(0, 1, length.out = n+1)[2:(n+1)])
@@ -212,12 +212,18 @@ thin_qqplot <- function(pvals, thin=c(0.25, 100), shade=TRUE){
     df.shade = data.frame("x"=c(v, rev(v)), "y"=c(-log10(c025), rev(-log10(c975))))
   }
 
+  if(is.finite(truncate) & any(pvals > truncate)){
+    shape <- c(1, 2)[as.numeric(pvals > truncate) + 1]
+    pvals <- pmin(truncate, pvals)
+  }else{
+    shape=1
+  }
 
 
   df <- data.frame("pval"=pvals, "v"=v)
   h <- ggplot(df)
   if(shade) h <-  h + geom_polygon(data=df.shade, aes(x=x, y=y), alpha=0.3, fill="black")
-  h <- h +  geom_point(aes(x=v, y=pval), shape=1) +
+  h <- h +  geom_point(aes(x=v, y=pval), shape=shape) +
     geom_abline(slope=1, intercept=0) +
     xlab(expression(Expected~~-log[10](italic( p )-value)))+
     ylab(expression(Observed~~-log[10](italic( p )-value)))+
