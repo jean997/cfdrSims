@@ -40,7 +40,6 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     peak_stats = peak_stats[peak_stats$chr==chr, ]
     stopifnot(all(peak_stats$winstart==peaks$X2))
     wintest_res[1, 1] = paste0( format(peak_stats$HuberP_05[ix_pk], digits=2), collapse=";")
-    rm(peak_stats)
     wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
     #Deseq2
