@@ -8,6 +8,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   myI = Intervals(c(strt, stp))
 
   #Find which hotspot (if any)
+  #We need this to find the raw data
   hotspots = read_delim("merged_hotspots.bed", delim="\t", col_names=FALSE)
   #Figure out which hotspot overlaps
   hotspots = hotspots[hotspots$X1==chr,]
@@ -18,33 +19,14 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
 
   #Interval boundaries
   bounds <-matrix(nrow=0, ncol=3)
-  wintest_res = matrix(nrow=5, ncol=2)
-  ####Hotspot Peak
+  wintest_res = matrix(nrow=3, ncol=2)
+  ####P-value q-value
   #Huber
   #Deseq2 Qvalue
-  #DESeq2 padj
   #WaveQTL
   #Wellington
 
 
-  #Stats in hotspots
-  if(length(ix_hs) > 0){
-    bounds <- rbind(bounds, c("hotspot", hs[ix_hs,]))
-    #Huber Statistics
-    hotspot_stats = getobj("hotspot_dat/hs_all_tests_s0-0.05.RData")
-    hotspot_stats = hotspot_stats[hotspot_stats$chr==chr,]
-    stopifnot(all(hotspot_stats$winstart==hotspots$X2))
-    wintest_res[1, 1] = format(hotspot_stats$HuberQ_05[ix_hs], digits=2)
-    rm(hotspot_stats)
-
-    #DESeq2 Statistics
-    hotspot_stats = getobj("deseq2_analysis/hs_deseq2.RData")
-    hotspot_stats = hotspot_stats[hotspot_stats$chr==chr,]
-    stopifnot(all(hotspot_stats$winstart==hotspots$X2))
-    wintest_res[2, 1] = format(hotspot_stats$qvalue[ix_hs], digits=2)
-    wintest_res[3, 1] = format(hotspot_stats$padj[ix_hs], digits=2)
-    rm(hotspot_stats)
-  }
   #Find which peak if any
   peaks <- read_delim("master.pks.merged.bed", delim="\t", col_names=FALSE)
   peaks <- peaks[peaks$X1 == chr,]
@@ -57,6 +39,8 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     peak_stats = getobj("peak_dat/peak_all_tests_s0-0.05.RData")
     peak_stats = peak_stats[peak_stats$chr==chr, ]
     stopifnot(all(peak_stats$winstart==peaks$X2))
+    wintest_res[1, 1] = paste0( format(peak_stats$HuberP_05[ix_pk], digits=2), collapse=";")
+    rm(peak_stats)
     wintest_res[1, 2] = paste0( format(peak_stats$HuberQ_05[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
     #Deseq2
@@ -64,14 +48,19 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     peak_stats = peak_stats[peak_stats$chr==chr, ]
     stopifnot(all(peak_stats$winstart==peaks$X2))
     wintest_res[2, 2] = paste0(format(peak_stats$qvalue[ix_pk], digits=2), collapse=";")
-    wintest_res[3, 2] = paste0(format(peak_stats$padj[ix_pk], digits=2), collapse=";")
+    wintest_res[2, 1] = paste0(format(peak_stats$pvalue[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
     #WaveQTL
     peak_stats = getobj("peak_dat/waveqtl_results.RData")
     peak_stats = peak_stats[peak_stats$chr==chr, ]
     stopifnot(all(peak_stats$winstart==peaks$X2))
-    wintest_res[4, 2] = paste0(format(peak_stats$pval[ix_pk], digits=2), collapse=";")
+    wintest_res[3, 1] = paste0(format(peak_stats$pval[ix_pk], digits=2), collapse=";")
+    wintest_res[3, 1] = paste0(format(peak_stats$qvalue[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
+    df <- data.frame(xmin=pk[ix_pk,1], xmax=pk[ix_pk,2],
+                     ymin=rep(0, length(ix_pk)), ymax=rep(Inf, length(ix_pk)))
+    pk_bg <- geom_rect(data=df, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+                       fill="blue", alpha=0.3)
 
   }
 
@@ -81,15 +70,19 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   wl = Intervals(wellington[, c(2, 3)])
   ix_wl = unlist(interval_overlap(myI, wl))
   if(length(ix_wl) > 0) {
-    rr = round(wellington[ix_wl, 5], digits=2)
-    wintest_res[5, 1] = paste(as.matrix(rr), as.matrix(wellington[ix_wl, 7]), collapse=";", sep="")
-    bounds <- rbind(bounds, cbind(rep("wellington", length(ix_wl)), wl[ix_wl,]))
+    well_scores = round(wellington[ix_wl, 5], digits=2)
+    df_well<- data.frame(xmin=wl[ix_wl,1], xmax=wl[ix_wl,2],
+                     ymin=rep(0, length(ix_pk)), ymax=rep(Inf, length(ix_pk)))
+    well_bg <-  geom_rect(data=df_well, aes(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax),
+                          fill="violetRed", alpha=0.3)
+  }else{
+    well_scores <- NULL
   }
 
   wintest_res <- data.frame(wintest_res)
-  names(wintest_res) <- c("Hotspot", "Peak")
-  wintest_res$Test <- c("Huber", "DESeq2-Q", "DESeq2 -QIF", "WaveQTL-P", "Wellington")
-  wintest_res <- wintest_res[, c("Test", "Hotspot", "Peak")]
+  names(wintest_res) <- c("p-alue", "q-value")
+  wintest_res$Test <- c("Huber", "DESeq2", "WaveQTL-P")
+  wintest_res <- wintest_res[, c("Test", "p-value", "q-value")]
 
   #Read data
   N = runif(n=1, min=1e5, max=1e9)
@@ -144,23 +137,14 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   datlong <- gather(dat, "sample", "count", -pos, -win)
   datlong$Sensitve <- factor(X$X2[match(datlong$sample, X$nn)])
 
-  bounds <- data.frame(bounds, stringsAsFactors=FALSE)
-  names(bounds)=c("type", "start", "stop")
-  bounds$start = as.numeric(bounds$start)
-  bounds$stop = as.numeric(bounds$stop)
-  bounds$y = rep(1, nrow(bounds))
-  bounds$y[bounds$type=="hotspot"] = -1
-  bounds$y[bounds$type=="peak"] = -2
-  bounds$y[bounds$type=="wellington"] = -3
-  bounds$color = c("orange", "skyblue", "violet")[-1*bounds$y]
-  bounds$start = pmax(bounds$start, min(dat$pos))
-  bounds$stop = pmin(bounds$stop, max(dat$pos))
+  dataplot <- ggplot(datlong)
+  if(length(ix_pk) > 0) dataplot <- dataplot + pk_bg
+  if(length(ix_wl) > 0) dataplot <- dataplot + well_bg
 
-  dataplot = ggplot(datlong) + geom_line(aes(x=pos, y=count, group=sample, color=Sensitve)) +
+  dataplot <- dataplot + geom_line(aes(x=pos, y=count, group=sample, color=Sensitve)) +
         theme_bw(18) + xlab("Position") + ylab("DNase 1 Sensitivity") +
         scale_color_manual(values=c("navyblue", "chartreuse3"))+
-        geom_rect(aes(xmin=start, xmax=stop, ymin=y-0.3, ymax=y+0.3), col="black",
-              fill=bounds$color, data=bounds, lwd=0, alpha=0.5)+
+        scale_y_continuous(limits=c(0, max(datlong$count)))
         theme(legend.position="none", panel.grid=element_blank())
 
   statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat)) +
@@ -178,11 +162,9 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
       theme(plot.margin=unit(c(1, 5, 2, 1), "lines"))
     gt <- ggplot_gtable(ggplot_build(statplot))
     gt$layout$clip[gt$layout$name=="panel"] <- "off"
-    h=grid.arrange(rbind(ggplotGrob(dataplot), gt, size="last"),
-                   tableGrob(wintest_res, rows=NULL), nrow=2 , heights=c(8, 2))
+    h=grid.arrange(rbind(ggplotGrob(dataplot), gt, size="last"))
   }else{
-    h=grid.arrange(rbind(ggplotGrob(dataplot), ggplotGrob(statplot), size="last"),
-                   tableGrob(wintest_res, rows=NULL), nrow=2 , heights=c(8, 2))
+    h=grid.arrange(rbind(ggplotGrob(dataplot), ggplotGrob(statplot), size="last"))
   }
 
   return(list("plot"=h, "dataplot"=dataplot, "statplot"=statplot, "wintest_res"=wintest_res))
