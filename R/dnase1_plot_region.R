@@ -79,7 +79,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   }
 
   wintest_res <- data.frame(wintest_res)
-  names(wintest_res) <- c("p-alue", "q-value")
+  names(wintest_res) <- c("p-value", "q-value")
   wintest_res$Test <- c("Huber", "DESeq2", "WaveQTL-P")
   wintest_res <- wintest_res[, c("Test", "p-value", "q-value")]
 
