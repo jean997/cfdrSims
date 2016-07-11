@@ -67,7 +67,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     wintest_res[3, 2] = paste0(format(peak_stats$padj[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
     #WaveQTL
-    peak_stats = getobj("peak_dat/waveqtl_rsults.RData")
+    peak_stats = getobj("peak_dat/waveqtl_results.RData")
     peak_stats = peak_stats[peak_stats$chr==chr, ]
     stopifnot(all(peak_stats$winstart==peaks$X2))
     wintest_res[4, 2] = paste0(format(peak_stats$pval[ix_pk], digits=2), collapse=";")
