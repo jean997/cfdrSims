@@ -17,8 +17,6 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   ix_hs = unlist(interval_overlap(myI, hs))
   stopifnot(length(ix_hs) <2) #No regions overlapping two hotspots.
 
-  #Interval boundaries
-  bounds <-matrix(nrow=0, ncol=3)
   wintest_res = matrix(nrow=3, ncol=2)
   ####P-value q-value
   #Huber
@@ -34,7 +32,6 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   ix_pk <- unlist(interval_overlap(myI, pk))
 
   if(length(ix_pk) > 0){
-    bounds <- rbind(bounds, cbind(rep("peak", length(ix_pk)), pk[ix_pk,]))
     #Huber
     peak_stats = getobj("peak_dat/peak_all_tests_s0-0.05.RData")
     peak_stats = peak_stats[peak_stats$chr==chr, ]
@@ -54,7 +51,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     peak_stats = peak_stats[peak_stats$chr==chr, ]
     stopifnot(all(peak_stats$winstart==peaks$X2))
     wintest_res[3, 1] = paste0(format(peak_stats$pval[ix_pk], digits=2), collapse=";")
-    wintest_res[3, 1] = paste0(format(peak_stats$qvalue[ix_pk], digits=2), collapse=";")
+    wintest_res[3, 2] = paste0(format(peak_stats$qvalue[ix_pk], digits=2), collapse=";")
     rm(peak_stats)
     df <- data.frame(xmin=pk[ix_pk,1], xmax=pk[ix_pk,2],
                      ymin=rep(0, length(ix_pk)), ymax=rep(Inf, length(ix_pk)))
@@ -143,7 +140,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   dataplot <- dataplot + geom_line(aes(x=pos, y=count, group=sample, color=Sensitve)) +
         theme_bw(18) + xlab("Position") + ylab("DNase 1 Sensitivity") +
         scale_color_manual(values=c("navyblue", "chartreuse3"))+
-        scale_y_continuous(limits=c(0, max(datlong$count)))
+        scale_y_continuous(limits=c(0, max(datlong$count))) +
         theme(legend.position="none", panel.grid=element_blank())
 
   statplot = ggplot(stat.data) + geom_line(aes(x=pos,  y=stat)) +
@@ -166,6 +163,6 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
     h=grid.arrange(rbind(ggplotGrob(dataplot), ggplotGrob(statplot), size="last"))
   }
 
-  return(list("plot"=h, "dataplot"=dataplot, "statplot"=statplot, "wintest_res"=wintest_res))
+  return(list("plot"=h, "dataplot"=dataplot, "statplot"=statplot, "wintest_res"=wintest_res, "well_scores"=well_scores))
 
 }
