@@ -109,7 +109,7 @@ dnase1_plot_region <- function(chr, strt, stp, dat.file, dat.bed.file,
   fret_ref  = read_delim(paste0("discopony_output/", chr, "/", chr, "_ref.txt"), delim=" ", col_names=FALSE)
   fret_ref = Intervals(fret_ref[, 2:3])
   ix_fret_chr = unlist(interval_overlap(myI, fret_ref))
-  fdr_levels=c(0.1, 0.07, 0.06, 0.05, 0.04)
+  fdr_levels=c(0.1, 0.07,  0.05, 0.04)
   if(length(ix_fret_chr)==0){
     cat("No FRET statistics in this region. Recalculating\n")
     ss = huber_helper(as.matrix(dat)[, -c(1, 2)], X$X2)
