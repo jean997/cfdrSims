@@ -9,7 +9,7 @@ test_smooth_jade_sim <- function(data.file, profiles, bandwidth=20, smooth.type=
   n <- nrow(f$Y)
 
   smooth.type <- match.arg(smooth.type, c("box", "spline"))
-  if(smooth.type==box){
+  if(smooth.type=="box"){
     smooth.func <- function(y){
       ksmooth(x=1:n, y=y, x.points = 1:n, bandwidth=bandwidth)$y
     }
