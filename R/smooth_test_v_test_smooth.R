@@ -1,7 +1,8 @@
 
 #All have t-test and box kernel smoother
 #'@export
-test_smooth_jade_sim <- function(data.file, profiles, bandwidth=20, smooth.type="box"){
+test_smooth_jade_sim <- function(data.file, profiles, bandwidth=20,
+                                 smooth.type="box", thresh=1e-6){
 
 
   f <- getobj(data.file)
@@ -20,13 +21,13 @@ test_smooth_jade_sim <- function(data.file, profiles, bandwidth=20, smooth.type=
   }
 
   #Build signal intervals object
-  q0 <-rle( abs(profiles[,1]-profiles[,2]) > 1e-6 )
+  q0 <-rle( abs(profiles[,1]-profiles[,2]) > thresh )
   p0 <- length(q0$lengths)
   signal<- cbind(c(1, cumsum(q0$lengths)[-p0]+1)[q0$values], (cumsum(q0$lengths))[q0$values])
   signal <- Intervals(signal)
   #Point-wise signal
   pw_signal <- rep(0, nrow(profiles))
-  pw_signal[ abs(profiles[,1]-profiles[,2]) > 1e-6 ] <- 1
+  pw_signal[ abs(profiles[,1]-profiles[,2]) > thresh] <- 1
 
   #Stats and smoothed stats
   stats <- cfdrSims:::t_stats(dat=f$Y, labs=labs, s0=0)
