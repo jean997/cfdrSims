@@ -37,10 +37,10 @@ make_sim_plot <- function(tot.rates, names, ltys, cols, shapes,
     geom_line(aes(x=level, y=tpr, group=type, col=type, lty=type), lwd=1.3) +
     geom_point(aes(x=level, y=tpr), size=5, colour="white", shape=20) +
     geom_point(aes(x=level, y=tpr, col=type, shape=type), size=2, stroke=1.3) +
-    theme_bw() + labs(x="Target FDR", y="Average True Positive Rate") +
+    theme_bw(15) + labs(x="Target FDR", y="Avg. Proportion of Signals Detected") +
     scale_color_manual(values=cols) +
     scale_linetype_manual(values=ltys) +
-    scale_shape_manual(values=shapes) + ggtitle("True Positive Rate") +
+    scale_shape_manual(values=shapes) + ggtitle("True Discovery Rate") +
     scale_x_continuous(breaks=levels, limits=c(0, max(levels))) +
     scale_y_continuous(limits = c(0, max(tot.rates$avg.tpr[ix,]))) +
     theme(panel.grid=element_blank(), legend.position="none")
@@ -52,7 +52,7 @@ make_sim_plot <- function(tot.rates, names, ltys, cols, shapes,
     geom_point(aes(x=level, y=fdp), size=5, colour="white", shape=20) +
     geom_point(aes(x=level, y=fdp, col=type, shape=type), size=2, stroke=1.3) +
     geom_abline(slope=1, intercept=0) +
-    theme_bw() + labs(x="Target FDR", y="Average False Discovery Proportion") +
+    theme_bw(15) + labs(x="Target FDR", y="Avg. False Discovery Proportion") +
     scale_color_manual(values=cols) +
     scale_linetype_manual(values=ltys) +
     scale_shape_manual(values=shapes) + ggtitle("False Discovery Rate") +
@@ -105,89 +105,6 @@ make_sim_legend <- function(){
   return(list(p, points))
 }
 
-plot_nregion <- function(){
-
-  #FRET
-  df = getobj("region_counts.RData")
-  names(df)= c("fdr", "total",  "Regions overlapping peaks")
-  df$`All regions` = df$total - df$`Regions overlapping peaks`
-  ymax = max(df$total)
-  dflong = gather(df, "class", "count", -fdr ,-total)
-  dflong$class=factor(dflong$class, levels=rev(levels(dflong$class)))
-  gridlines = seq(10000, ymax, by=10000)
-  h_fret = ggplot(dflong) + geom_area(aes(x=fdr, y = count, fill=class), alpha=0.5) +
-    ylab("Number of Regions") + xlab("rFDR Threshold") +
-    scale_x_continuous(breaks=seq(0.04, 0.2, by=0.02), limits=c(0.03, 0.2))+
-    scale_fill_manual(values=c("darkorange1", "blue"))+
-    geom_hline(yintercept = gridlines, lty=3) +
-    theme_bw(12) + theme(panel.grid=element_blank(),
-                         legend.position=c(0.3, 0.9), legend.title=element_blank())
-
-  #Wellington Bootstrap
-  df = getobj("region_counts_well.RData")
-  names(df)= c("score", "total",  "Footprints overlapping peaks")
-  df=df[df$score >=10,]
-  ymax = max(df$total)
-  df$`All footprints` = df$total - df$`Footprints overlapping peaks`
-
-  dflong = gather(df, "class", "count", -score ,-total)
-  dflong$class=factor(dflong$class, levels=rev(levels(dflong$class)))
-  gridlines = seq(10000, ymax, by=10000)
-  h_well = ggplot(dflong) + geom_area(aes(x=score, y = count, fill=class), alpha=0.5) +
-    ylab("Number of Footprints") + xlab("Score") +
-    scale_x_reverse(breaks=seq(10, 100, by=20), limits=c(100, 10))+
-    scale_fill_manual(values=c("darkorange1", "blue"))+
-    geom_hline(yintercept = gridlines, lty=3) +
-    theme_bw(12) + theme(panel.grid=element_blank(),
-                         legend.position=c(0.3, 0.9), legend.title=element_blank())
-
-  #Huber
-  df = getobj("region_counts_huber.RData")
-  names(df)= c("fdr", "total")
-  ymax = max(df$total)
-  gridlines = seq(10000, ymax, by=10000)
-  h_huber = ggplot(df) + geom_area(aes(x=fdr, y = total), fill="blue", alpha=0.5) +
-    ylab("Number of Peaks") + xlab("FDR Threshold") +
-    geom_hline(yintercept = gridlines, lty=3) +
-    scale_x_continuous(breaks=seq(0, 0.2, by=0.02), limits=c(0, 0.2))+
-    theme_bw(12) + theme(panel.grid=element_blank())
-
-
-  #DESeq2
-  df = getobj("region_counts_deseq2.RData")
-  names(df)= c("fdr", "total")
-  ymax = max(df$total)
-  gridlines = seq(10000, ymax, by=10000)
-  h_deseq2 = ggplot(df) + geom_area(aes(x=fdr, y = total), fill="blue", alpha=0.5) +
-    ylab("Number of Peaks") + xlab("FDR Threshold") +
-    scale_x_continuous(breaks=seq(0, 0.2, by=0.02), limits=c(0, 0.2))+
-    geom_hline(yintercept = gridlines, lty=3) +
-    theme_bw(12) + theme(panel.grid=element_blank())
-
-  #Waveqtl
-  df = getobj("region_counts_wave.RData")
-  names(df)= c("fdr", "total")
-  ymax = max(ymax, max(df$total))
-  h_wave = ggplot(df) + geom_area(aes(x=fdr, y = total), fill="blue", alpha=0.5) +
-    ylab("Number of Peaks") + xlab("FDR Threshold") +
-    scale_x_continuous(breaks=c(0.04, 0.06, 0.08, 0.1, 0.15, 0.2), limits=c(0, 0.2))+
-    theme_bw(12) + theme(panel.grid=element_blank())
-
-
-  #Titles and scales
-  h_fret = h_fret + ggtitle("(a) FRET")
-  h_well = h_well + ggtitle("(b) Wellington-Bootstrap")
-  h_huber = h_huber + ggtitle("(b) Huber Fixed-Window Test")
-  h_deseq2 = h_deseq2 + ggtitle("(b) DESeq2")
-  h_wave = h_wave + ggtitle("(b) WaveQTL")
-
-  ggsave(h_fret, file="~/Dropbox/Thesis/img/fret_results.png", height=5, width=5, units="in", dpi=300)
-  ggsave(h_well, file="~/Dropbox/Thesis/img/well_results.png", height=5, width=5, units="in", dpi=300)
-  ggsave(h_huber, file="~/Dropbox/Thesis/img/huber_results.png", height=5, width=5, units="in", dpi=300)
-  ggsave(h_deseq2, file="~/Dropbox/Thesis/img/deseq2_results.png", height=5, width=5, units="in", dpi=300)
-  ggsave(h_wave, file="~/Dropbox/Thesis/img/wave_results.png", height=5, width=5, units="in", dpi=300)
-}
-
 #'@export
 thin_qqplot <- function(pvals, thin=c(0.25, 100), shade=TRUE, truncate=Inf){
   n <- length(pvals)
@@ -230,3 +147,233 @@ thin_qqplot <- function(pvals, thin=c(0.25, 100), shade=TRUE, truncate=Inf){
     theme_bw(12) + theme(panel.grid=element_blank())
   return(h)
 }
+
+
+plot_densities <- function(){
+
+  full_dat <- getobj("~/Desktop/Cluster_FDR/dnase1_results/full_results_signif.RData")
+
+  n <- apply(full_dat[, c(20,  24, 23, 25, 26)], MARGIN=2, FUN=sum)
+  top <- rep(c(1, 0), c(sum(n[1:3]), sum(n[4:5])))
+  full_dat$mean_med <- full_dat$mean_all/full_dat$median_all
+  lab1 <- c("FRET rFDR < 0.05",
+            "Huber q-value < 0.05",
+            "DESeq2 q-value < 0.05")
+  lab2 <- c("WaveQTL p-value < 0.001",
+            "Wellington-Bootstrap score > 80")
+
+  #Mean/Median Density Plotts
+  df <- data.frame("mean_med" = c(full_dat$mean_med[full_dat$fret_q05_ov],
+                                  full_dat$mean_med[full_dat$huber_signif],
+                                  full_dat$mean_med[full_dat$deseq2_signif],
+                                  full_dat$mean_med[full_dat$waveqtl_p3],
+                                  full_dat$mean_med[full_dat$well_g80]),
+                   "method" = c(rep(c("fret", "huber", "deseq2", "wave", "well"), n)))
+  df$top <- top
+  df$method <- factor(df$method, levels = c("fret", "huber", "deseq2", "wave", "well"))
+  r <- range(df$mean_med[is.finite(df$mean_med)])
+
+  mean_med <- ggplot(df[top==1,]) + geom_density(aes(x=mean_med, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Ratio of Mean to Median Sensitivity") + ylab("Density")+
+    scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
+    scale_linetype_manual(labels=lab1,values=1:3) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position=c(0.7, 0.85))
+  ggsave(plot=mean_med, file="~/Dropbox/Thesis/img/mean_med1.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+  mean_med <- ggplot(df[top==0,]) + geom_density(aes(x=mean_med, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Ratio of Mean to Median Sensitivity") + ylab("Density")+
+    scale_fill_manual(labels=lab2, values=brewer.pal(5, name="Set1")[4:5]) +
+    scale_linetype_manual(labels=lab2,values=1:2) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position=c(0.7, 0.85))
+  ggsave(plot=mean_med, file="~/Dropbox/Thesis/img/mean_med2.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+  #Fold change density plots
+  full_dat$mean_mean <- full_dat$mean_x0/full_dat$median_x1
+  df <- data.frame("mean_mean" = c(full_dat$mean_mean[full_dat$fret_q05_ov],
+                                  full_dat$mean_mean[full_dat$huber_signif],
+                                  full_dat$mean_mean[full_dat$deseq2_signif],
+                                  full_dat$mean_mean[full_dat$waveqtl_p3],
+                                  full_dat$mean_mean[full_dat$well_g80]),
+                   "method" = c(rep(c("fret", "huber", "deseq2", "wave", "well"), n)))
+  df$top <- top
+  df$method <- factor(df$method, levels = c("fret", "huber", "deseq2", "wave", "well"))
+  r <- range(df$mean_mean[is.finite(df$mean_mean)])
+
+  mean_mean <- ggplot(df[top==1,]) + geom_density(aes(x=mean_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Fold Change Between Trait Groups") + ylab("Density")+
+    scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
+    scale_linetype_manual(labels=lab1,values=1:3) +
+    geom_vline(xintercept = 1)+
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=mean_mean, file="~/Dropbox/Thesis/img/mean_mean1.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+  mean_mean <- ggplot(df[top==0,]) + geom_density(aes(x=mean_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10() + xlab("Fold Change Between Trait Groups") + ylab("Density")+
+    scale_fill_manual(labels=lab2, values=brewer.pal(5, name="Set1")[4:5]) +
+    scale_linetype_manual(labels=lab2,values=1:2) +
+    geom_vline(xintercept = 1)+
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=mean_mean, file="~/Dropbox/Thesis/img/mean_mean2.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+
+  #Min mean density plots
+  full_dat$min_mean <- pmin(full_dat$mean_x0, full_dat$mean_x1)
+  df <- data.frame("min_mean" = c(full_dat$min_mean[full_dat$fret_q05_ov],
+                                   full_dat$min_mean[full_dat$huber_signif],
+                                   full_dat$min_mean[full_dat$deseq2_signif],
+                                   full_dat$min_mean[full_dat$waveqtl_p3],
+                                   full_dat$min_mean[full_dat$well_g80]),
+                   "method" = c(rep(c("fret", "huber", "deseq2", "wave", "well"), n)))
+  df$top <- top
+  df$method <- factor(df$method, levels = c("fret", "huber", "deseq2", "wave", "well"))
+  r <- range(df$min_mean[df$min_mean > 0])
+
+  min_mean <- ggplot(df[top==1,]) + geom_density(aes(x=min_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Mean of Lower Sensitivity Group") + ylab("Density")+
+    scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
+    scale_linetype_manual(labels=lab1,values=1:3) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=min_mean, file="~/Dropbox/Thesis/img/min_mean1.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+  min_mean <- ggplot(df[top==0,]) + geom_density(aes(x=min_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Mean of Lower Sensitivity Group") + ylab("Density")+
+    scale_fill_manual(labels=lab2, values=brewer.pal(5, name="Set1")[4:5]) +
+    scale_linetype_manual(labels=lab2,values=1:2) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=min_mean, file="~/Dropbox/Thesis/img/min_mean2.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+  #Min mean density plots
+  full_dat$max_mean <- pmax(full_dat$mean_x0, full_dat$mean_x1)
+  df <- data.frame("max_mean" = c(full_dat$max_mean[full_dat$fret_q05_ov],
+                                  full_dat$max_mean[full_dat$huber_signif],
+                                  full_dat$max_mean[full_dat$deseq2_signif],
+                                  full_dat$max_mean[full_dat$waveqtl_p3],
+                                  full_dat$max_mean[full_dat$well_g80]),
+                   "method" = c(rep(c("fret", "huber", "deseq2", "wave", "well"), n)))
+  df$top <- top
+  df$method <- factor(df$method, levels = c("fret", "huber", "deseq2", "wave", "well"))
+  r <- range(df$max_mean[df$max_mean > 0])
+
+  max_mean <- ggplot(df[top==1,]) + geom_density(aes(x=max_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Mean of Higher Sensitivity Group") + ylab("Density")+
+    scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
+    scale_linetype_manual(labels=lab1,values=1:3) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=max_mean, file="~/Dropbox/Thesis/img/max_mean1.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+  max_mean <- ggplot(df[top==0,]) + geom_density(aes(x=max_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Mean of Lower Sensitivity Group") + ylab("Density")+
+    scale_fill_manual(labels=lab2, values=brewer.pal(5, name="Set1")[4:5]) +
+    scale_linetype_manual(labels=lab2,values=1:2) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=max_mean, file="~/Dropbox/Thesis/img/max_mean2.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+
+
+
+
+
+
+}
+
+
+
+
+plot_median_mean <- function(){
+  full_dat <- getobj("~/Desktop/Cluster_FDR/dnase1_results/full_results_signif.RData")
+
+  fret_deseq2 <- ggplot(full_dat[full_dat$fret_signif,]) +
+      geom_abline(slope=1, intercept=0, linetype=3) +
+        geom_point(aes(x=median_all, y=mean_all, col=deseq2_signif), alpha=0.3)+
+        labs(x="Median DNase 1 Sensivity",
+              y="Mean DNase 1 Sensitivity",
+             title="FRET minimum rFDR < 0.05") +
+        scale_color_manual(labels=c("DESeq2 q-value > 0.05", "DESeq2 q-value < 0.05"),
+                           values=c("turquoise", "darkorange2")) +
+      theme_bw(12) + theme(panel.grid=element_blank(),
+                           legend.title=element_blank(),
+                           legend.position=c(0.8, 0.8))
+
+
+  deseq2_fret <- ggplot(full_dat[full_dat$deseq2_signif,]) +
+    geom_abline(slope=1, intercept=0, linetype=3) +
+    geom_point(aes(x=median_all, y=mean_all, col=fret_signif), alpha=0.3)+
+    labs(x="Median DNase 1 Sensivity",
+         y="Mean DNase 1 Sensitivity",
+         title="DESeq2 q-valule < 0.05") +
+    scale_color_manual(labels=c("FRET min rFDR > 0.05", "FRET min rFDR < 0.05"),
+                       values=c("darkgrey", "darkorange2")) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position=c(0.3, 0.85))
+  ggsave(deseq2_fret, file="~/Dropbox/Thesis/img/deseq2_fret.png",
+         height=4, width=4, units="in", dpi=300)
+
+
+  fret_huber <- ggplot(full_dat[full_dat$fret_signif,]) +
+    geom_abline(slope=1, intercept=0, linetype=3) +
+    geom_point(aes(x=median_all, y=mean_all, col=huber_signif), alpha=0.3)+
+    labs(x="Median DNase 1 Sensivity",
+         y="Mean DNase 1 Sensitivity",
+         title="FRET minimum rFDR < 0.05") +
+    scale_color_manual(labels=c("Huber q-value > 0.05", "Huber q-value < 0.05"),
+                       values=c("turquoise", "darkorange2")) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.position=c(0.8, 0.8))
+
+
+  huber_fret <- ggplot(full_dat[full_dat$huber_signif,]) +
+    geom_abline(slope=1, intercept=0, linetype=3) +
+    geom_point(aes(x=median_all, y=mean_all, col=fret_signif), alpha=0.3)+
+    labs(x="Median DNase 1 Sensivity",
+         y="Mean DNase 1 Sensitivity",
+         title="Huber fixed-window q-valule < 0.05") +
+    scale_color_manual(labels=c("FRET min rFDR > 0.05", "FRET min rFDR < 0.05"),
+                       values=c("darkgrey", "darkorange2")) +
+    theme_bw(12) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position=c(0.3, 0.85))
+  ggsave(huber_fret, file="~/Dropbox/Thesis/img/huber_fret.png",
+         height=4, width=4, units="in", dpi=300)
+
+
+  full_dat$med_mean <- full_dat$median_all/full_dat$mean_all
+
+
+}
+
