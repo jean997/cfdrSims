@@ -112,12 +112,22 @@ run_deseq2 <- function(file.start){
   R <- getobj(paste0(file.start, "_fret.RData"))
   p <- dim(R$dat)[1]
   k <- p/200
-  w_64e <- cbind(seq(1, p - (p%%64), by=64), seq(64, p, by=64))
-  w_64b <- cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))
-  w_64e_deseq2 <-deseq2_test(w_64e, R$dat, 1:p, R$x, R$signal$signal)
-  save(w_64e_deseq2, file=paste0(file.start, "_w64e_deseq2.RData"))
-  w_64b_deseq2 <-deseq2_test(w_64b, R$dat, 1:p, R$x, R$signal$signal)
-  save(w_64b_deseq2, file=paste0(file.start, "_w64b_deseq2.RData"))
+  #w_64e <- cbind(seq(1, p - (p%%64), by=64), seq(64, p, by=64))
+  #w_64b <- cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))
+  #w_64e_deseq2 <-deseq2_test(w_64e, R$dat, 1:p, R$x, R$signal$signal)
+  #save(w_64e_deseq2, file=paste0(file.start, "_w64e_deseq2.RData"))
+  #w_64b_deseq2 <-deseq2_test(w_64b, R$dat, 1:p, R$x, R$signal$signal)
+  #save(w_64b_deseq2, file=paste0(file.start, "_w64b_deseq2.RData"))
+
+  n <- "w64o"
+  w <- cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))-14
+  w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
+  save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
+
+  n <- "w8b"
+  w <- cbind( 96 + 200*(1:k -1), 103 + 200*(1:k -1))
+  w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
+  save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
 
 }
 
@@ -137,20 +147,20 @@ run_win_tests2 <- function(file.start, p, waveQTL_loc, s0=c(0, 0, 0)){
   w_waveqtl <-run_waveQTL(w, dat=R$dat, x=R$x, signal=R$signal$signal,
                               waveQTL_loc=waveQTL_loc)
   save(w_waveqtl, file=paste0(file.start, "_", n, "_wave.RData"))
-  w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
-  save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
+  #w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
+  #save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
 
 
   n <- "w8b"
-  w_8b <- cbind( 96 + 200*(1:k -1), 103 + 200*(1:k -1))
+  w <- cbind( 96 + 200*(1:k -1), 103 + 200*(1:k -1))
   w_test <- window_test(w, dat=R$dat,
                         pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
   save(w_test, file=paste0(file.start, "_", n, ".RData"))
   w_waveqtl <-run_waveQTL(w, dat=R$dat, x=R$x, signal=R$signal$signal,
                           waveQTL_loc=waveQTL_loc)
   save(w_waveqtl, file=paste0(file.start, "_", n, "_wave.RData"))
-  w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
-  save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
+  #w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
+  #save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
 }
 
 
