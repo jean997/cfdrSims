@@ -7,37 +7,45 @@ fpr.func <- function(x, labels){
     return(sum(x==1 & labels==0)/sum(labels==0))
 }
 
-f <- function(x, y){
-  s <- sort(x)
-  yy <- sapply(s, FUN=function(ss){
-    max(y[x <= ss])
-  })
-  return(list("x"=s, "y"=yy))
+get_tpr_fpr <- function(sep, labels){
+#sep should be p x B labels should be length p
+    tpr <- apply(sep, MARGIN=2, FUN=tpr.func, labels=labels)
+    fpr <- apply(sep, MARGIN=2, FUN=fpr.func, labels=labels)
+		return(list("tpr"=tpr, "fpr"=fpr))
 }
 
 #For ROC curves
-#'@title Get average tpr and fdp rates over replicates
+#'@title Get average tpr and fpr rates over replicates
 #'@param tpr.list A list of vectors giving true positive rates
 #'@param fpr.list A list of vectors giving false positive rates
-#'@param npoints Number of points to evaluate
+#'@param direction Average over fixed fpr (vertical) or fixed tpr (horizontal)
 #'@return list with fpr, tpr and s.e
 #'@export
-avg_by_fdp <- function(tpr.list, fdp.list,  npoints=200){
+avg_by_interp <- function(tpr.list, fpr.list, direction="vertical", npoints=200){
 	B <- length(tpr.list)
-
-	fdp.out <- seq(0, 1, length.out=npoints)
-	tpr.mat <- matrix(0, npoints, B)
-	for(i in 1:B){
-	  idx <- which(is.na(fdp.list[[i]]) | is.na(tpr.list[[i]]))
-	  if(length(idx)==0) yy <- f(x=fdp.list[[i]], y=tpr.list[[i]])
-		  else yy <- f(x=fdp.list[[i]][-idx], y=tpr.list[[i]][-idx])
-		apprx.tf <- approx(x=yy$x, y=yy$y, xout=fdp.out, ties="max")
-		tpr.mat[,i] <- apprx.tf$y
+	if(direction=="vertical"){
+		fpr.out <- seq(0, 1, length.out=npoints)
+		tpr.mat <- matrix(0, npoints, B)
+		for(i in 1:B){
+			apprx.tf <- approx(x=fpr.list[[i]], y=tpr.list[[i]], xout=fpr.out, ties=max)
+			tpr.mat[,i] <- apprx.tf$y
+		}
+		m <- rowMeans(tpr.mat, na.rm=TRUE)
+		tot.obs <- rowSums(!is.na(tpr.mat))
+		var <- (1/(tot.obs-1))*rowSums((tpr.mat-m)^2, na.rm=TRUE)
+		return(list("fpr"=fpr.out, "tpr"=m, "s.e"=sqrt(var)))
+	}else if(direction=="horizontal"){
+		tpr.out <- seq(0, 1, length.out=npoints)
+		fpr.mat <- matrix(0, npoints, B)
+		for(i in 1:B){
+			apprx.tf <- approx(x=tpr.list[[i]], y=fpr.list[[i]], xout=tpr.out, ties=max)
+			fpr.mat[,i] <- apprx.tf$y
+		}
+		m <- rowMeans(fpr.mat, na.rm=TRUE)
+		tot.obs <- rowSums(!is.na(fpr.mat))
+		var <- (1/(tot.obs-1))*rowSums((fpr.mat-m)^2, na.rm=TRUE)
+		return(list("fpr"=m, "tpr"=tpr.out, "s.e"=sqrt(var)))
 	}
-	m <- rowMeans(tpr.mat, na.rm=TRUE)
-	tot.obs <- rowSums(!is.na(tpr.mat))
-	var <- (1/(tot.obs-1))*rowSums((tpr.mat-m)^2, na.rm=TRUE)
-	return(list("fdp"=fdp.out, "tpr"=m, "s.e"=sqrt(var)))
 }
 
 
