@@ -27,7 +27,7 @@ avg_by_interp <- function(tpr.list, fpr.list, direction="vertical", npoints=200)
 		fpr.out <- seq(0, 1, length.out=npoints)
 		tpr.mat <- matrix(0, npoints, B)
 		for(i in 1:B){
-			apprx.tf <- approx(x=fpr.list[[i]], y=tpr.list[[i]], xout=fpr.out, ties=max)
+			apprx.tf <- approx(x=fpr.list[[i]], y=tpr.list[[i]], xout=fpr.out, ties=max, rule=2)
 			tpr.mat[,i] <- apprx.tf$y
 		}
 		m <- rowMeans(tpr.mat, na.rm=TRUE)
