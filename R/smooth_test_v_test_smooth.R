@@ -204,7 +204,7 @@ test_smooth_fret_sim <- function(fret.file, bandwidth=20,
   })))
 
   results <- list("pw_ts"=pw_ts, "pw_st"  = pw_st,
-                  "rw_ts"=rw_ts, "rw_st" = rwrw_st,
+                  "rw_ts"=rw_ts, "rw_st" = rw_st,
                   "rw_ts_merge" = rw_ts_merge, "rw_st_merge" = rw_st_merge)
   return(results)
 }
