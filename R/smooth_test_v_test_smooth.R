@@ -3,8 +3,11 @@
 #'@export
 test_smooth_jade_sim <- function(file.prefix, which.rep,
                                  profiles, bandwidth=20,
-                                 smooth.type="box", thresh=1e-6){
+                                 smooth.type=c("box", "spline"),
+                                 stat.type=c("t", "huber"), s0=0,
+                                 thresh=1e-6){
 
+  stat.type <- match.arg(stat.type)
   #Build signal intervals object
   q0 <-rle( abs(profiles[,1]-profiles[,2]) > thresh )
   p0 <- length(q0$lengths)
@@ -17,7 +20,7 @@ test_smooth_jade_sim <- function(file.prefix, which.rep,
   n <- nrow(profiles)
 
 
-  smooth.type <- match.arg(smooth.type, c("box", "spline"))
+  smooth.type <- match.arg(smooth.type)
   if(smooth.type=="box"){
     smooth.func <- function(y){
       ksmooth(x=1:n, y=y, x.points = 1:n, bandwidth=bandwidth)$y
@@ -28,6 +31,15 @@ test_smooth_jade_sim <- function(file.prefix, which.rep,
     }
   }
 
+  if(stat.type=="t"){
+    stat.func <- function(Y, labs){
+      t_stats(Y, labs, s0=s0)
+    }
+  }else if(stat.type=="huber"){
+    stat.func <- function(Y, labs){
+      huber_stats2(Y, labs, s0=s0)
+    }
+  }
   #pw, rw, rw_merged
   ts_f <- list()
   ts_t <- list()
@@ -43,14 +55,14 @@ test_smooth_jade_sim <- function(file.prefix, which.rep,
     f <- getobj(data.file)
     labs <- rep(c(0, 1), f$sample.size)
     #Stats and smoothed stats
-    stats <- cfdrSims:::t_stats(dat=f$Y, labs=labs, s0=0)
+    stats <-stat.func(f$Y, labs)
     ys <- smooth.func(stats)
 
     #Smoothed data and stats
     Ys <- apply(f$Y, MARGIN=2, FUN=function(y){
       smooth.func(y)
     })
-    stat_Ys <- cfdrSims:::t_stats(dat=Ys, labs=labs, s0=0)
+    stat_Ys <- stat.func(Ys, labs)
 
     #Rates for test then smooth
     yy <- sort(abs(ys), decreasing=TRUE)
