@@ -136,11 +136,13 @@ fpr.func <- function(x, labels){
 #'@export
 test_smooth_fret_sim <- function(fret.file, bandwidth=20,
                                  sample.size=c(15, 15), stat.type=c("t", "huber"), s0=0,
+                                 normal.noise = NULL,
                                  smooth.type=c("box", "spline")){
 
   stat.type <- match.arg(stat.type)
   smooth.type <- match.arg(smooth.type)
   R <- getobj(fret.file)
+  if(!is.null(normal.noise)) R$dat <- apply(R$means, MARGIN=2, FUN=function(x){rnorm(n=12000, mean=x, sd=normal.noise)})
   #Build signal intervals object
   signal <- Intervals(R$signal$signal)
   #Point-wise signal
