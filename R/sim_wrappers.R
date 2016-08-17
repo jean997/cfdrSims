@@ -17,6 +17,10 @@ run_bin <- function(seed, prefix, n, type.sequence, n.seg=c(2, 6), sample.size=c
     if(x==0) return( list("ht"=c(p1, p2), "assoc"=c(1, 1)))
     return(list("ht"=c(p2, p1), "assoc"=c(1, 1)))
   }
+  g5 <- function(x){
+    if(x==0) return( list("ht"=4, "assoc"=1))
+    return(list("ht"=5, "assoc"=1))
+  }
   pk.ht.funcs = c(g1, g2, g3, g4)
 
   R <- cfdr_sims2(x, pk.ht.funcs, type.sequence, n.seg=n.seg,
