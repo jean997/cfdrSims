@@ -120,6 +120,6 @@ deseq2_test <- function(windows, dat, pos, x, signal,
   rates <- t(sapply(sort(abs(results$stat)), FUN=function(xx){
     tpr_nfp(signal, discoveries=w[abs(results$stat) >= xx, , drop=FALSE])
   }))
-  return(list("results"=results, "rates"=rates, "rates_at"=rates_at,
+  return(list("results"=results, "rates"=rates, "rates_at"=rates_at, "pvalue" = results$pvalue,
               "windows"=windows, "class"=l))
 }
