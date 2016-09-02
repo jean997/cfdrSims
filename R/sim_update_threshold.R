@@ -1,5 +1,5 @@
 
-
+#'@export
 sim_update_threshold <- function(prefix, n, ext="upd_rates.RData"){
   file.name <- paste0(prefix, "_", n, "_fret.RData")
   save.name <- paste0(prefix, "_", n, "_", ext)
@@ -51,7 +51,7 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates.RData"){
         }
         if(nrow(cl_unsigned[[i]][[k]]$clust[[j]])> 0){
           new.rates.usgn[i, k, j, ]<- tpr_nfp(Intervals(R$signal$signal),
-                                     discoveries=cl_signed[[i]][[k]]$clust[[j]])
+                                     discoveries=cl_unsigned[[i]][[k]]$clust[[j]])
         }
       }
     }

@@ -4,15 +4,13 @@
 \alias{get_clusters2}
 \title{Count clusters at several levels of z and set threshold}
 \usage{
-get_clusters2(smoothed.stats, pos, nlam, zmin, z0 = 0.3 * zmin,
-  level = c(0.02, 0.05, 0.1, 0.2), segment.bounds = NULL)
+get_clusters2(smoothed.stats, pos, zmin, z0 = 0.3 * zmin, level = c(0.02,
+  0.05, 0.1, 0.2), segment.bounds = NULL)
 }
 \arguments{
 \item{smoothed.stats}{Matrix of smoothed stats.}
 
 \item{pos}{Length p vector of positions}
-
-\item{nlam}{Number of thresholds to consider}
 
 \item{zmin}{Vector of length 1 or 2}
 

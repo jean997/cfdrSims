@@ -58,7 +58,7 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
     perm.maxes.list[[i]] <- lamtab(pm, zmin, d[i], N-1)
   }
 
-  R <- fret_choose_z2(max1.list, perm.maxes.list, nbp=d, signed=signed)
+  R <- fret_choose_z2(max1.list, perm.maxes.list, nbp=d, zmin)
 
   clust <- list()
   zsel <- array(dim=c(s, length(level), K+1))
