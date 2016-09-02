@@ -61,13 +61,11 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
   R <- fret_choose_z2(max1.list, perm.maxes.list, nbp=d, signed=signed)
 
   clust <- list()
-
   zsel <- array(dim=c(s, length(level), K+1))
   dimnames(zsel) = list(1:s, level, names(R$z))
   for(j in 1:length(level)){
     if(any(R$fdr <= level[j])){
-      l <- max(R$z[,1][R$fdr <= level[j]])
-      ix <- which(R$z[,1]==l)
+      ix <- max(which(R$fdr <= level[j]   ))
       zsel[1, j, ] <- as.numeric(R$z[ix,])
       if(s==2){
         zsel[2, j, ] <- as.numeric(R$zneg[ix,])
