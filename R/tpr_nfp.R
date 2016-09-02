@@ -30,6 +30,10 @@ tpr_nfp <- function(signal, discoveries=NULL, x=NULL, z=NULL, z0=NULL){
     R <- c("tpr"=0, "nfp"=0, "ntp"=0, "fdp"=0)
     return(R)
   }
+  if(!"intervals" %in% class(signal)){
+    stopifnot(dim(signal)[2]==2)
+    signal <- Intervals(signal)
+  }
   td <- interval_overlap(discoveries, signal)
   #1 if overlapping with signal, 0 otherwise
   td_class <- unlist(lapply(td, FUN=length))

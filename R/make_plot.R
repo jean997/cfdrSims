@@ -156,11 +156,14 @@ plot_densities <- function(){
   n <- apply(full_dat[, c(20,  24, 23, 25, 26)], MARGIN=2, FUN=sum)
   top <- rep(c(1, 0), c(sum(n[1:3]), sum(n[4:5])))
   full_dat$mean_med <- full_dat$mean_all/full_dat$median_all
-  lab1 <- c("FRET rFDR < 0.05",
-            "Huber q-value < 0.05",
+  lab1 <- c("FRET rFDR < 0.05      ",
+            "Huber q-value < 0.05      ",
             "DESeq2 q-value < 0.05")
-  lab2 <- c("WaveQTL p-value < 0.001",
-            "Wellington-Bootstrap score > 80")
+  lab2 <- c("WaveQTL p-value < 0.001      ",
+            "Wellington-Bootstrap
+            score > 80")
+
+  dat <- getobj("~/Desktop/Cluster_FDR/dnase1_results/fret_50_summary.RData")
 
   #Mean/Median Density Plotts
   df <- data.frame("mean_med" = c(full_dat$mean_med[full_dat$fret_q05_ov],
@@ -171,9 +174,13 @@ plot_densities <- function(){
                    "method" = c(rep(c("fret", "huber", "deseq2", "wave", "well"), n)))
   df$top <- top
   df$method <- factor(df$method, levels = c("fret", "huber", "deseq2", "wave", "well"))
+
+  dat$mean_med <- dat$mean_all/dat$median_all
+
   r <- range(df$mean_med[is.finite(df$mean_med)])
 
   mean_med <- ggplot(df[top==1,]) + geom_density(aes(x=mean_med, fill=method, linetype=method), alpha=0.3) +
+    #geom_density(data=dat, aes(x=mean_med), fill="turquoise", alpha=0.3, lty=1) +
     scale_x_log10(limits=r) + xlab("Ratio of Mean to Median Sensitivity") + ylab("Density")+
     scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
     scale_linetype_manual(labels=lab1,values=1:3) +
@@ -184,6 +191,21 @@ plot_densities <- function(){
   ggsave(plot=mean_med, file="~/Dropbox/Thesis/img/mean_med1.png", height=4.5, width=4.5,
          units="in", dpi=300)
 
+  mean_med_talk <- ggplot(df[top==1,]) + geom_density(aes(x=mean_med, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Ratio of Mean to Median Sensitivity") + ylab("Density")+
+    scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
+    scale_linetype_manual(labels=lab1,values=1:3) +
+    theme_bw(16) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.text = element_text(size=12),
+                         legend.background=element_blank(),
+                         legend.position="none")  # + guides(fill = guide_legend(nrow=2))
+
+  ggsave(plot=mean_med_talk, file="~/Dropbox/Thesis/final_talk/img/mean_med1.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+
+
   mean_med <- ggplot(df[top==0,]) + geom_density(aes(x=mean_med, fill=method, linetype=method), alpha=0.3) +
     scale_x_log10(limits=r) + xlab("Ratio of Mean to Median Sensitivity") + ylab("Density")+
     scale_fill_manual(labels=lab2, values=brewer.pal(5, name="Set1")[4:5]) +
@@ -193,6 +215,19 @@ plot_densities <- function(){
                          legend.background=element_blank(),
                          legend.position=c(0.7, 0.85))
   ggsave(plot=mean_med, file="~/Dropbox/Thesis/img/mean_med2.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+  mean_med_talk <- ggplot(df[top==0,]) + geom_density(aes(x=mean_med, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Ratio of Mean to Median Sensitivity") + ylab("Density")+
+    scale_fill_manual(labels=lab2, values=brewer.pal(5, name="Set1")[4:5]) +
+    scale_linetype_manual(labels=lab2,values=1:2) +
+    theme_bw(16) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.text = element_text(size=12),
+                         legend.background=element_blank(),
+                         legend.position="none")
+
+  ggsave(plot=mean_med_talk, file="~/Dropbox/Thesis/final_talk/img/mean_med2.png", height=4.5, width=4.5,
          units="in", dpi=300)
 
   #Fold change density plots
@@ -206,8 +241,9 @@ plot_densities <- function(){
   df$top <- top
   df$method <- factor(df$method, levels = c("fret", "huber", "deseq2", "wave", "well"))
   r <- range(df$mean_mean[is.finite(df$mean_mean)])
-
+  dat$mean_mean <- dat$mean_x0/dat$mean_x1
   mean_mean <- ggplot(df[top==1,]) + geom_density(aes(x=mean_mean, fill=method, linetype=method), alpha=0.3) +
+    geom_density(data=dat, aes(x=mean_mean), fill="turquoise", alpha=0.3, lty=1) +
     scale_x_log10(limits=r) + xlab("Fold Change Between Trait Groups") + ylab("Density")+
     scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
     scale_linetype_manual(labels=lab1,values=1:3) +
@@ -218,6 +254,20 @@ plot_densities <- function(){
                          legend.position="none")
   ggsave(plot=mean_mean, file="~/Dropbox/Thesis/img/mean_mean1.png", height=4.5, width=4.5,
          units="in", dpi=300)
+
+  mean_mean_talk <- ggplot(df[top==1,]) + geom_density(aes(x=mean_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Fold Change Between Trait Groups") + ylab("Density")+
+    scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
+    scale_linetype_manual(labels=lab1,values=1:3) +
+    geom_vline(xintercept = 1)+
+    theme_bw(16) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.text = element_text(size=14),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=mean_mean_talk, file="~/Dropbox/Thesis/final_talk/img/mean_mean1.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
 
   mean_mean <- ggplot(df[top==0,]) + geom_density(aes(x=mean_mean, fill=method, linetype=method), alpha=0.3) +
     scale_x_log10() + xlab("Fold Change Between Trait Groups") + ylab("Density")+
@@ -232,6 +282,20 @@ plot_densities <- function(){
          units="in", dpi=300)
 
 
+  mean_mean_talk <- ggplot(df[top==0,]) + geom_density(aes(x=mean_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10() + xlab("Fold Change Between Trait Groups") + ylab("Density")+
+    scale_fill_manual(labels=lab2, values=brewer.pal(5, name="Set1")[4:5]) +
+    scale_linetype_manual(labels=lab2,values=1:2) +
+    geom_vline(xintercept = 1)+
+    theme_bw(16) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.text = element_text(size=12),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=mean_mean_talk, file="~/Dropbox/Thesis/final_talk/img/mean_mean2.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+
   #Min mean density plots
   full_dat$min_mean <- pmin(full_dat$mean_x0, full_dat$mean_x1)
   df <- data.frame("min_mean" = c(full_dat$min_mean[full_dat$fret_q05_ov],
@@ -243,8 +307,10 @@ plot_densities <- function(){
   df$top <- top
   df$method <- factor(df$method, levels = c("fret", "huber", "deseq2", "wave", "well"))
   r <- range(df$min_mean[df$min_mean > 0])
+  dat$min_mean <- pmin(dat$mean_x0, dat$mean_x1)
 
   min_mean <- ggplot(df[top==1,]) + geom_density(aes(x=min_mean, fill=method, linetype=method), alpha=0.3) +
+    geom_density(data=dat, aes(x=min_mean), fill="turquoise", alpha=0.3, lty=1) +
     scale_x_log10(limits=r) + xlab("Mean of Lower Sensitivity Group") + ylab("Density")+
     scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
     scale_linetype_manual(labels=lab1,values=1:3) +
@@ -253,6 +319,19 @@ plot_densities <- function(){
                          legend.background=element_blank(),
                          legend.position="none")
   ggsave(plot=min_mean, file="~/Dropbox/Thesis/img/min_mean1.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+
+
+  min_mean_talk <- ggplot(df[top==1,]) + geom_density(aes(x=min_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Mean of Lower Sensitivity Group") + ylab("Density")+
+    scale_fill_manual(labels=lab1, values=brewer.pal(5, name="Set1")[1:3])  +
+    scale_linetype_manual(labels=lab1,values=1:3) +
+    theme_bw(16) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=min_mean_talk, file="~/Dropbox/Thesis/final_talk/img/min_mean1.png", height=4.5, width=4.5,
          units="in", dpi=300)
 
   min_mean <- ggplot(df[top==0,]) + geom_density(aes(x=min_mean, fill=method, linetype=method), alpha=0.3) +
@@ -264,6 +343,17 @@ plot_densities <- function(){
                          legend.background=element_blank(),
                          legend.position="none")
   ggsave(plot=min_mean, file="~/Dropbox/Thesis/img/min_mean2.png", height=4.5, width=4.5,
+         units="in", dpi=300)
+
+  min_mean_talk <- ggplot(df[top==0,]) + geom_density(aes(x=min_mean, fill=method, linetype=method), alpha=0.3) +
+    scale_x_log10(limits=r) + xlab("Mean of Lower Sensitivity Group") + ylab("Density")+
+    scale_fill_manual(labels=lab2, values=brewer.pal(5, name="Set1")[4:5]) +
+    scale_linetype_manual(labels=lab2,values=1:2) +
+    theme_bw(16) + theme(panel.grid=element_blank(),
+                         legend.title=element_blank(),
+                         legend.background=element_blank(),
+                         legend.position="none")
+  ggsave(plot=min_mean_talk, file="~/Dropbox/Thesis/final_talk/img/min_mean2.png", height=4.5, width=4.5,
          units="in", dpi=300)
 
   #Min mean density plots

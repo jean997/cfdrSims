@@ -49,7 +49,7 @@ get_clusters <- function(stats, pos, bw, nlam, lambda.max=NULL,
     }
   }
   R <- list("R" = R,  "bw"=bw, "clust"=clust, "x"=x, "fdr"=fdr,
-            "z"=z, "z0"=z0, "zsel"=zsel)
+            "z"=z, "z0"=z0, "zsel"=zsel, "signal"=signal)
   return(R)
 }
 

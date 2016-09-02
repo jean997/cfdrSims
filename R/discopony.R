@@ -31,7 +31,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   if(n.perm > 0){
     set.seed(seed)
     perms <- replicate(n=n.perm, expr = {
-      sample( X[,2], size=n, replace=FALSE)
+      sample( X[[2]], size=n, replace=FALSE)
     })
   }
 
@@ -39,9 +39,9 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   name.root <- unlist(strsplit(dat.file, ".txt"))[1]
   dat <- read_delim(dat.file, delim=" ")
   if(nrow(dat)==0) return(0)
-  pos <- dat[,1]
+  pos <- dat$pos
   #Make sure the phenotype is sorted correctly
-  X <- X[match(names(dat)[-1], X[,1]),  ]
+  X <- X[match(names(dat)[-1], X[[1]]),  ]
   #Chunks will have a little extra data to get the smoothing right
   if(!is.null(strt)){
     ix1 <- min(which(pos >=strt))
@@ -56,10 +56,10 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
     stp <- pos[ix2]
   }
   len <- stp-strt + 1
-
+  pos.out = pos[ix1:ix2]
   #Calculate statistics
   if(is.null(max1.file)){
-    y <- huber_stats2(Y=dat[, -1], labs=X[,2],s0=s0, maxit=maxit)
+    y <- huber_stats2(Y=dat[, -1], labs=X[[2]],s0=s0, maxit=maxit)
     ys <- ksmooth_0(x=pos, y=y, bandwidth = bandwidth)[ix1:ix2]
   }else{
     m1 <- getobj(max1.file)
@@ -79,9 +79,20 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
   max1 <- apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(ys)[iv[1]:iv[2]])})
   max1 <- max1[max1 >= zmin]
   if(n.perm==0){
-    R <- list("max1"=max1,"file"=dat.file, "nbp"=len, "ys"=ys, "pos"=pos, "z0"=z0, "zmin"=zmin)
+    R <- list("max1"=max1,"file"=dat.file, "nbp"=len, "ys"=ys, "pos"=pos.out, "z0"=z0, "zmin"=zmin)
     return(R)
   }
+
+#for(i in 1:n.perm){
+#  cat(i, " ")
+#  l <- perms[,i]
+#  yy <- huber_stats2(dat[,-1], labs=l, s0=s0, maxit=maxit)
+#  stats[,i] <- ksmooth_0(x=pos, y=yy, bandwidth = bandwidth)[ix1:ix2]
+#  q0 <-rle( abs(stats[,i]) > z0 )
+#  p0 <- length(q0$lengths)
+#  ivls <- cbind(c(1, cumsum(q0$lengths)[-p0]+1)[q0$values], (cumsum(q0$lengths))[q0$values])
+#  max.perm <- c(max.perm, apply(ivls, MARGIN=1, FUN=function(iv){ max(abs(stats[,i])[iv[1]:iv[2]])}))
+#}
 
   #Permutation test statistics and peak heights
   cat("Calculating permutation peak heights.\n")
@@ -112,7 +123,7 @@ discopony_maxes1 <- function(dat.file, pheno.file, s0, zmin,
 
   R <- list("max1"=max1, "mx"=mx, "file"=dat.file,
             "z0"=z0, "zmin"=zmin,
-            "nbp"=len, "ys"=ys, "pos"=pos)
+            "nbp"=len, "ys"=ys, "pos"=pos.out)
   save(R, file=out.file)
   return(nrow(mx))
 }
@@ -305,7 +316,7 @@ dnase1_test_windows <- function(dat.file, pheno.file, maxit=50){
 
 #'@export
 dnase1_run_waveqtl <- function(dat.file, pheno.file,
-                               window.file, waveQTL_loc, chr,nperm=1000, 
+                               window.file, waveQTL_loc, chr,nperm=1000,
                               which.wins=NULL){
   #Read data. Dat file has first two columns as pos and win
   dat <- read_delim(dat.file, delim=" ")
