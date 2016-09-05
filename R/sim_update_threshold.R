@@ -14,12 +14,15 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates.RData"){
     stopifnot(p %% n.seg == 0)
     sb[[i]] <- cbind(seq(1, p, by=p/n.seg[i]),  seq(p/n.seg[i], p, by=p/n.seg[i]))
   }
-
+  K <- length(sb) + 1
+  dd <- dim(R$rates_at) + c(0, 1, 0, 0)
+  dn <- dimnames(R$rates_at)
+  dn[[2]] <- c(dn[[2]], "auto")
   stat.names <- dimnames(R$rates_at)[[1]]
   level <- as.numeric(dimnames(R$rates_at)[[3]])
   b <- length(level)
-  new.rates.sgn <- new.rates.usgn <- array(0, dim=dim(R$rates_at))
-  dimnames(new.rates.sgn) <- dimnames(new.rates.usgn) <- dimnames(R$rates_at)
+  new.rates.sgn <- new.rates.usgn <- array(0, dim=dd)
+  dimnames(new.rates.sgn) <- dimnames(new.rates.usgn) <- dn
 
   cl_unsigned <- list()
   cl_signed <- list()
@@ -36,9 +39,13 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates.RData"){
     zmin_usgn <- as.numeric(quantile(abs(Zs[,-1]), probs=0.9))
     z0_usgn <- 0.3*zmin_usgn
 
+    #Automatically determined intervals
+    vv <- apply(Zs[,-1], MARGIN=1, FUN=var)
+    sb[[K]] <- find_segments(vv=vv, pos=1:p, min.length = 200)
+
     cl_signed[[i]] <- cl_unsigned[[i]] <- list()
     cat(" nseg: ")
-    for(k in 1:length(sb)){
+    for(k in 1:K){
       cat(nrow(sb[[k]]), " ")
       cl_signed[[i]][[k]] <- get_clusters2(Zs, 1:p, zmin_sgn, z0_sgn,
                                     level=level, segment.bounds=sb[[k]])
