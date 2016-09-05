@@ -59,25 +59,25 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
   }
 
   R <- fret_choose_z2(max1.list, perm.maxes.list, nbp=d, zmin)
-
+  fdr <- R$z$fdr
   clust <- list()
-  zsel <- array(dim=c(s, length(level), K+1))
+  zsel <- array(dim=c(s, length(level), K+2))
   dimnames(zsel) = list(1:s, level, names(R$z))
   for(j in 1:length(level)){
-    if(any(R$fdr <= level[j])){
-      ix <- max(which(R$fdr <= level[j]   ))
+    if(any(fdr <= level[j])){
+      ix <- max(which(fdr <= level[j]   ))
       zsel[1, j, ] <- as.numeric(R$z[ix,])
       if(s==2){
         zsel[2, j, ] <- as.numeric(R$zneg[ix,])
         cpos <- name_clusters_merged(x=smoothed.stats[,1],
-                                     z=rep(as.numeric(zsel[1, j,-1]), d),
+                                     z=rep(as.numeric(zsel[1, j,-c(1,2)]), d),
                                      z0=z0[1],sgn=TRUE)
         cneg <- name_clusters_merged(x=smoothed.stats[,1],
-                                     z=rep(as.numeric(zsel[2, j,-1]), d),
+                                     z=rep(as.numeric(zsel[2, j,-c(1,2)]), d),
                                      z0=z0[2],sgn=TRUE)
         clust[[j]] <- interval_union(cpos, cneg)
       }else{
-        clust[[j]] <- name_clusters_merged(x=smoothed.stats[,1], z=rep(zsel[1, j,-1], d), z0=z0)
+        clust[[j]] <- name_clusters_merged(x=smoothed.stats[,1], z=rep(zsel[1, j,-c(1,2)], d), z0=z0)
       }
     }else{
       clust[[j]] <-Intervals()
@@ -87,6 +87,7 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
   R[["zsel"]] <- zsel
   R[["zmin"]] <- zmin
   R[["z0"]] <- z0
+  R[["segments"]] <- segment.bounds
   return(R)
 }
 
