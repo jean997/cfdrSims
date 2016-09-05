@@ -77,7 +77,9 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
                                      z0=z0[2],sgn=TRUE)
         clust[[j]] <- interval_union(cpos, cneg)
       }else{
-        clust[[j]] <- name_clusters_merged(x=smoothed.stats[,1], z=rep(zsel[1, j,-c(1,2)], d), z0=z0)
+        clust[[j]] <- name_clusters_merged(x=smoothed.stats[,1],
+                                           z=rep(as.numeric(zsel[1, j,-c(1,2)]), d),
+                                           z0=z0)
       }
     }else{
       clust[[j]] <-Intervals()
