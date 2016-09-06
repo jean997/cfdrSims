@@ -1,7 +1,8 @@
 
 #'@export
 sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
-                                 n.seg = c(), auto=c(0, 50, 150, 200)){
+                                 n.seg = c(), auto=c(1, 50, 150, 200),
+                                 vv.bandwidth=1){
   file.name <- paste0(prefix, "_", n, "_fret.RData")
   save.name <- paste0(prefix, "_", n, "_", ext)
   R <- getobj(file.name)
@@ -45,7 +46,8 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
     #Automatically determined intervals
     vv <- apply(Zs[,-1], MARGIN=1, FUN=var)
     for(k in 1:length(auto)){
-      sb[[k + length(n.seg)]] <- find_segments(vv=vv, pos=1:p, min.length = auto[k])
+      sb[[k + length(n.seg)]] <- find_segments(vv=vv, pos=1:p, min.length = auto[k],
+                                               bandwidth=vv.bandwidth, q=0.05)
     }
     cl_signed[[i]] <- cl_unsigned[[i]] <- list()
     cat(" nseg: ")
