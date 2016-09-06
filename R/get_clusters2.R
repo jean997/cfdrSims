@@ -59,6 +59,12 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
   }
 
   R <- fret_choose_z2(max1.list, perm.maxes.list, nbp=d, zmin)
+  if(is.null(R$Robs)){
+    clust <- list()
+    for(j in 1:length(level)) clust[[j]] <- Intervals()
+    R[["clust"]] <- clust
+    return(R)
+  }
   fdr <- R$z$fdr
   clust <- list()
   zsel <- array(dim=c(s, length(level), K+2))
