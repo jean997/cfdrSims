@@ -11,11 +11,12 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
   #segment.bounds
   K <- length(n.seg) + length(auto)
   sb=list()
-  for(i in 1:length(n.seg)){
-    stopifnot(p %% n.seg == 0)
-    sb[[i]] <- cbind(seq(1, p, by=p/n.seg[i]),  seq(p/n.seg[i], p, by=p/n.seg[i]))
+  if(length(n.seg) > 0){
+    for(i in 1:length(n.seg)){
+      stopifnot(p %% n.seg == 0)
+      sb[[i]] <- cbind(seq(1, p, by=p/n.seg[i]),  seq(p/n.seg[i], p, by=p/n.seg[i]))
+    }
   }
-
   dd <- dim(R$rates_at)
   dd[2] <- K
   dn <- dimnames(R$rates_at)
