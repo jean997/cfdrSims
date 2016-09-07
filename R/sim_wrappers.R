@@ -4,7 +4,7 @@
 #'@export
 run_bin_aoas <- function(seed, prefix, n, type.sequence,
                          n.seg=c(2, 4), auto.min.length = c(50, 100, 200),
-                         sample.size=c(10, 20),
+                         sample.size=c(10, 20), random.peak.loc=TRUE,
                     n.perms=500, waveQTL_loc="~/.local/bin/WaveQTL"){
   file.start <- paste0(prefix, "_", n)
   x <- rep(c(0, 1), sample.size)
@@ -23,7 +23,7 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence,
                   level=c(0.02, 0.05, 0.1, 0.2),
                   save.data=TRUE, huber.maxit=50,
                   file.name=paste0(file.start, "_fret.RData"),
-                  random.peak.loc=TRUE)
+                  random.peak.loc=random.peak.loc)
   run_win_tests(file.start, p = 200*length(type.sequence), waveQTL_loc )
 }
 
