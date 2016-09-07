@@ -110,85 +110,79 @@ run_cont <- function(seed, prefix, n, type.sequence, n.seg=c(2, 6), sample.size=
 }
 
 
-run_win_tests <- function(file.start, p, waveQTL_loc, s0=c(0, 0, 0)){
+run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
+                          naive.bw=c(32, 64), informed.bw=c(32, 64)){
   R <- getobj(paste0(file.start, "_fret.RData"))
+  p <- dim(R$stats)[2]
 
-  #Even Windows
-  w_50e <- cbind(seq(26, p-27, by=50), seq(75, p, by=50))
-  w_50e_test <- window_test(w_50e, dat=R$dat, pos=1:p,
-                            x=R$x, signal=R$signal$signal, s0=s0)
-  save(w_50e_test, file=paste0(file.start, "_w50e.RData"))
-
-  #Windows around peaks
-  k <- p/200
-  w_50b <- cbind( 76 + 200*(1:k -1), 125 + 200*(1:k -1))
-  w_50b_test <- window_test(w_50b, dat=R$dat,pos=1:p,
-                            x=R$x, signal=R$signal$signal, s0=s0)
-  save(w_50b_test, file=paste0(file.start, "_w50b.RData"))
-
-  #Width 64 bins for waveQTL
-  #Even
-
-  w_64e <- cbind(seq(1, p - (p%%64), by=64), seq(64, p, by=64))
-  w_64e_test <- window_test(w_64e, dat=R$dat,
+  #Naive window
+  for(bw in naive.bw){
+    n <- paste0("naive", bw)
+    k <- floor(p/bw)
+    strt <- floor((p - (k*bw))/2) + 1
+    strts <- ((0:(k-1))*bw) + strt
+    stps <- strts + bw -1
+    wins <- cbind(strts, stps)
+    w_test <- window_test(wins, dat=R$dat,
                             pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
-  save(w_64e_test, file=paste0(file.start, "_w64e.RData"))
-  w_64e_waveqtl <-run_waveQTL(w_64e, dat=R$dat, x=R$x, signal=R$signal$signal,
-                      waveQTL_loc=waveQTL_loc)
-  save(w_64e_waveqtl, file=paste0(file.start, "_w64e_wave.RData"))
-  #At peaks
-  w_64b <- cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))
-  w_64b_test <- window_test(w_64b, dat=R$dat,
-                            pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
-  save(w_64b_test, file=paste0(file.start, "_w64b.RData"))
-  w_64b_waveqtl <-run_waveQTL(w_64b, dat=R$dat, x=R$x, signal=R$signal$signal,
+    save(w_test, file=paste0(file.start, "_", n, "_tests.RData"))
+    if(log(bw, 2)==floor(log(bw, 2))){
+      w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
                               waveQTL_loc=waveQTL_loc)
-  save(w_64b_waveqtl, file=paste0(file.start, "_w64b_wave.RData"))
+      save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
+    }
+  }
+  #Informed windows
+  for(bw in informed.bw){
+    n <- paste0("informed", bw)
+    wins <- R$signal$peaks
+    d <- wins[,2]-wins[,1]+1
+    needed <- bw - d
+    left <- pmin(wins[,1]-1,  sapply(needed/2, FUN=floor))
+    right <- needed-left
+    wins[,1] <- wins[,1]-left
+    wins[,2] <- wins[,2] + right
+    wins <- as.matrix(interval_union(Intervals(wins)))
+    d <- wins[,2]-wins[,1]+1
+    w_test <- window_test(wins, dat=R$dat,
+                          pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
+    save(w_test, file=paste0(file.start, "_", n, "_tests.RData"))
+    if(all(log(d, 2)==floor(log(d,2)))){
+      w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
+                            waveQTL_loc=waveQTL_loc)
+      save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
+    }
+  }
 }
 
-run_deseq2 <- function(file.start){
+run_deseq2 <- function(file.start, naive.bw=c(32, 64), informed.bw=c(32, 64)){
   R <- getobj(paste0(file.start, "_fret.RData"))
   p <- dim(R$dat)[1]
-  k <- p/200
-  #w_64e <- cbind(seq(1, p - (p%%64), by=64), seq(64, p, by=64))
-  #w_64b <- cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))
-  #w_64e_deseq2 <-deseq2_test(w_64e, R$dat, 1:p, R$x, R$signal$signal)
-  #save(w_64e_deseq2, file=paste0(file.start, "_w64e_deseq2.RData"))
-  #w_64b_deseq2 <-deseq2_test(w_64b, R$dat, 1:p, R$x, R$signal$signal)
-  #save(w_64b_deseq2, file=paste0(file.start, "_w64b_deseq2.RData"))
-
-  n <- "w64e"
-  w <-  cbind(seq(1, p - (p%%64), by=64), seq(64, p, by=64))
-  w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
-  save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
-
-  n <- "w64b"
-  w <-  cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))
-  w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
-  save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
 
 
-  n <- "w32e"
-  w <-  cbind(seq(1, p - (p%%32), by=32), seq(32, p, by=32))
-  w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
-  save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
-
-  n <- "w32b"
-  w <-  cbind( 85 + 200*(1:k -1), 116 + 200*(1:k -1))
-  w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
-  save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
-
-
-  #n <- "w64o"
-  #w <- cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))-14
-  #w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
-  #save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
-
-  #n <- "w8b"
-  #w <- cbind( 96 + 200*(1:k -1), 103 + 200*(1:k -1))
-  #w_deseq2 <-deseq2_test(w, R$dat, 1:p, R$x, R$signal$signal)
-  #save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
-
+  for(bw in naive.bw){
+    n <- paste0("naive", bw)
+    k <- floor(p/bw)
+    strt <- floor((p - (k*bw))/2) + 1
+    strts <- ((0:(k-1))*bw) + strt
+    stps <- strts + bw -1
+    wins <- cbind(strts, stps)
+    w_deseq2 <-deseq2_test(wins, R$dat, 1:p, R$x, R$signal$signal)
+    save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
+  }
+  for(bw in informed.bw){
+    n <- paste0("informed", bw)
+    wins <- R$signal$peaks
+    d <- wins[,2]-wins[,1]+1
+    needed <- bw - d
+    left <- pmin(wins[,1]-1,  sapply(needed/2, FUN=floor))
+    right <- needed-left
+    wins[,1] <- wins[,1]-left
+    wins[,2] <- wins[,2] + right
+    wins <- as.matrix(interval_union(Intervals(wins)))
+    w_deseq2 <-deseq2_test(wins, R$dat, 1:p, R$x, R$signal$signal)
+    save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
+  }
 }
 
 
