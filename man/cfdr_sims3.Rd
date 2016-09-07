@@ -4,9 +4,10 @@
 \alias{cfdr_sims3}
 \title{Run Simulations}
 \usage{
-cfdr_sims3(x, pk.ht.funcs, type.sequence, n.seg = NULL, seed = NULL,
-  n.perms = 500, s0 = c(0, 0, 0), level = c(0.02, 0.05, 0.1, 0.2),
-  save.data = FALSE, huber.maxit = 50, file.name = NULL)
+cfdr_sims3(x, pk.ht.funcs, type.sequence, seed = NULL, n.perms = 500,
+  s0 = c(0, 0, 0), n.seg = NULL, auto.min.length = NULL, level = c(0.02,
+  0.05, 0.1, 0.2), save.data = FALSE, huber.maxit = 50, file.name = NULL,
+  random.peak.loc = FALSE)
 }
 \arguments{
 \item{x}{Trait}

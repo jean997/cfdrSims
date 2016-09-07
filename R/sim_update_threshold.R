@@ -1,7 +1,7 @@
 
 #'@export
 sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
-                                 n.seg = c(), auto=c(1, 50, 150, 200),
+                                 n.seg = c(), auto=c(50, 100, 150, 200),
                                  vv.bandwidth=1){
   file.name <- paste0(prefix, "_", n, "_fret.RData")
   save.name <- paste0(prefix, "_", n, "_", ext)
@@ -37,7 +37,7 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
       ksmooth(x=1:p, y=y, x.points=1:p, bandwidth=20)$y
     })
 
-    zmin_sgn <- as.numeric(quantile(Zs[,-1], probs=c(0.05, 0.95)))
+    zmin_sgn <- as.numeric(quantile(Zs[,-1], probs=c(0.95, 0.05)))
     z0_sgn <- 0.3*zmin_sgn
 
     zmin_usgn <- as.numeric(quantile(abs(Zs[,-1]), probs=0.9))

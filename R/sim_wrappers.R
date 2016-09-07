@@ -1,5 +1,37 @@
 #'@import dplyr
 
+
+#'@export
+run_bin_aoas <- function(seed, prefix, n, type.sequence,
+                         n.seg=c(2, 4), auto.min.length = c(50, 100, 200),
+                         sample.size=c(10, 20),
+                    n.perms=500, waveQTL_loc="~/.local/bin/WaveQTL"){
+  file.start <- paste0(prefix, "_", n)
+  x <- rep(c(0, 1), sample.size)
+  g1 = function(x){return(list("ht"=5, "assoc"=0))}
+  g2 <- function(x){return(list("ht"=rexp(n = 1, rate=1/5)+1.5, "assoc"=0))}
+  g3 <- function(x){
+    if(x==0) return( list("ht"=4, "assoc"=1))
+    return(list("ht"=5, "assoc"=1))
+  }
+  g4 <- function(x){return(list("ht"=rexp(n = 1, rate=1/5)+1.5+x, "assoc"=1))}
+  pk.ht.funcs = c(g1, g2, g3, g4)
+
+  R <- cfdr_sims3(x, pk.ht.funcs, type.sequence,
+                  n.seg=n.seg, auto.min.length =auto.min.length,
+                  seed=seed, n.perms=n.perms, s0=rep(0.05, 3),
+                  level=c(0.02, 0.05, 0.1, 0.2),
+                  save.data=TRUE, huber.maxit=50,
+                  file.name=paste0(file.start, "_fret.RData"))
+  run_win_tests(file.start, p = 200*length(type.sequence), waveQTL_loc )
+}
+
+
+
+
+
+
+
 #'@export
 run_bin <- function(seed, prefix, n, type.sequence, n.seg=c(2, 6), sample.size=c(15, 15),
                     n.perm=500, waveQTL_loc="~/.local/bin/WaveQTL"){
@@ -24,7 +56,7 @@ run_bin <- function(seed, prefix, n, type.sequence, n.seg=c(2, 6), sample.size=c
   g6 <- function(x){return(list("ht"=rexp(n = 1, rate=1/5)+1.5+x, "assoc"=1))}
   pk.ht.funcs = c(g1, g2, g3, g4, g5, g6)
 
-  R <- cfdr_sims3(x, pk.ht.funcs, type.sequence, n.seg=n.seg,
+  R <- cfdr_sims2(x, pk.ht.funcs, type.sequence, n.seg=n.seg,
                          seed=seed, n.perms=n.perm, s0=rep(0.05, 3),
                          level=c(0.02, 0.05, 0.1, 0.2),
                          save.data=TRUE, huber.maxit=50,
