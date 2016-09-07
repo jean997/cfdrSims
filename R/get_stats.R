@@ -74,8 +74,10 @@ get_stats_huber2<- function(dat, labs, perm_labs, s0=0, maxit=50){
 huber_stats2 <- function(Y, labs, k=1.345, s0=0, maxit=20){
   B <- apply(Y, MARGIN=1, FUN=function(y){
     f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
-    b1 <- summary(f)$coefficients[2, 1]
-    s <- summary(f)$coefficients[2, 2] + s0
+    coef <- summary(f)$coefficients
+    if(nrow(coef)==1) return(0)
+    b1 <- coef[2, 1]
+    s <- coef[2, 2] + s0
     if(is.na(b1/s)) return(0)
     return(b1/s)
   })
