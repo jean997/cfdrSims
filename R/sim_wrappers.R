@@ -32,7 +32,7 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence,
   run_win_tests(file.start, waveQTL_loc)
 }
 
-
+#'@export
 run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
                           naive.bw=c(32, 64), informed.bw=c(32, 64)){
   R <- getobj(paste0(file.start, "_fret.RData"))
@@ -78,6 +78,7 @@ run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
   }
 }
 
+#'@export
 run_deseq2 <- function(file.start, naive.bw=c(32, 64), informed.bw=c(32, 64)){
   R <- getobj(paste0(file.start, "_fret.RData"))
   p <- dim(R$dat)[1]

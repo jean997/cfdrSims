@@ -5,9 +5,9 @@
 \title{Run Simulations}
 \usage{
 cfdr_sims3(x, pk.ht.funcs, type.sequence, seed = NULL, n.perms = 500,
-  s0 = c(0, 0, 0), n.seg = NULL, auto.min.length = NULL, level = c(0.02,
-  0.05, 0.1, 0.2), save.data = FALSE, huber.maxit = 50, file.name = NULL,
-  random.peak.loc = FALSE)
+  s0 = c(0, 0, 0), n.seg = c(), auto.min.length = c(), level = c(0.02,
+  0.05, 0.1, 0.2), huber.maxit = 50, save.data = FALSE, file.name = NULL,
+  data.only = FALSE, random.peak.loc = FALSE, min.peak.sep = 2)
 }
 \arguments{
 \item{x}{Trait}
