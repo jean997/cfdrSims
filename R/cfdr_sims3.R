@@ -14,9 +14,9 @@
 cfdr_sims3 <- function(x, pk.ht.funcs, type.sequence,
                        seed=NULL, n.perms=500, s0=c(0, 0, 0),
                        n.seg=NULL, auto.min.length = NULL,
-                       level=c(0.02, 0.05, 0.1, 0.2),
-                       save.data=FALSE, huber.maxit=50,
-                       file.name=NULL, random.peak.loc = FALSE){
+                       level=c(0.02, 0.05, 0.1, 0.2), huber.maxit=50,
+                       save.data=FALSE, file.name=NULL,
+                       random.peak.loc = FALSE, min.peak.sep=2){
 
   if(!is.null(seed)) set.seed(seed)
   stat.names = c("Poisson", "Huber", "t-test")
@@ -59,8 +59,9 @@ cfdr_sims3 <- function(x, pk.ht.funcs, type.sequence,
   #Generage Data
   if(random.peak.loc){
     peak.starts <- sort(sample(1:p, size = length(type.sequence), replace=FALSE))
-    while(!all(diff(c(0, peak.starts, p)) >= 45 )){
-      ix <- min(min(which(diff(c(0, peak.starts, p)) < 45 )), r)
+    sep <- 20 + min.peak.sep
+    while(!all(diff(c(0, peak.starts, p)) >= sep )){
+      ix <- min(min(which(diff(c(0, peak.starts, p)) < sep )), r)
       peak.starts[ix] <- sample((1:p)[-peak.starts], size=1)
       peak.starts <- sort(peak.starts)
     }
