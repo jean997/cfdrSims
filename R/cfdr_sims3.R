@@ -13,9 +13,9 @@
 #'@export
 cfdr_sims3 <- function(x, pk.ht.funcs, type.sequence,
                        seed=NULL, n.perms=500, s0=c(0, 0, 0),
-                       n.seg=NULL, auto.min.length = NULL,
+                       n.seg=c(), auto.min.length = c(),
                        level=c(0.02, 0.05, 0.1, 0.2), huber.maxit=50,
-                       save.data=FALSE, file.name=NULL,
+                       save.data=FALSE, file.name=NULL, data.only=FALSE,
                        random.peak.loc = FALSE, min.peak.sep=2){
 
   if(!is.null(seed)) set.seed(seed)
@@ -43,13 +43,16 @@ cfdr_sims3 <- function(x, pk.ht.funcs, type.sequence,
 
   #Segment bounds
   sb=list()
+  sbnames <- c("1")
   sb[[1]] <- matrix(c(1, p), ncol=2)
-  if(!is.null(n.seg)){
+  if(length(n.seg)> 0){
     for(i in 1:length(n.seg)){
       stopifnot(p %% n.seg == 0)
       sb[[i+1]] <- cbind(seq(1, p, by=p/n.seg[i]),  seq(p/n.seg[i], p, by=p/n.seg[i]))
     }
+    sbnames <- c(sbnames, as.character(n.seg))
   }
+  if(length(auto.min.length) > 0) sbnames <- c(sbnames, paste0("auto", auto.min.length))
 
   #Permutations
   perms <- replicate(n=n.perms, expr = {
@@ -77,11 +80,14 @@ cfdr_sims3 <- function(x, pk.ht.funcs, type.sequence,
   D <- apply(P, MARGIN=2, FUN=function(m){rpois(n=nrow(P), lambda=m)})
   #Build signal object
   S <- get_signal3(pk.ht.funcs, type.sequence, peak.starts)
-
+  if(data.only){
+    ret=list("dat"=D, "means"=P, "signa"=S, "x"=x)
+    save(ret, file=file.name)
+    return(ret)
+  }
   #Output options
   rates <- array(0, dim=c(length(stat.names), kk, b, 4))
-  dimnames(rates)= list(stat.names,
-                        c(1, n.seg, paste0("auto", auto.min.length)),
+  dimnames(rates)= list(stat.names, sbnames,
                         level, c("tpr", "nfp", "ntp", "fdp"))
   if(!is.null(file.name)) save(D, file=temp.name)
   if(save.data){
@@ -109,7 +115,7 @@ cfdr_sims3 <- function(x, pk.ht.funcs, type.sequence,
     })
     #Auto segment bounds
     vv <- apply(Zs[,-1], 1, var)
-    if(!is.null(auto.min.length)){
+    if(length(auto.min.length)> 0){
       for(k in 1:length(auto.min.length)){
         sb[[k + length(n.seg) + 1]] <- find_segments(vv=vv, pos=1:p,
                                                min.length = auto.min.length[k],
