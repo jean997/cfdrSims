@@ -22,7 +22,8 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence,
                   seed=seed, n.perms=n.perms, s0=rep(0.05, 3),
                   level=c(0.02, 0.05, 0.1, 0.2),
                   save.data=TRUE, huber.maxit=50,
-                  file.name=paste0(file.start, "_fret.RData"))
+                  file.name=paste0(file.start, "_fret.RData"),
+                  random.peak.loc=TRUE)
   run_win_tests(file.start, p = 200*length(type.sequence), waveQTL_loc )
 }
 
