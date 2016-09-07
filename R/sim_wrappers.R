@@ -15,12 +15,9 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence,
                                 "assoc"=0))}
 
   #Associated functions
-  g4 <- function(x){
-    if(x==0) return( list("ht"=4, "assoc"=1))
-    return(list("ht"=6, "assoc"=1))
-  }
+  g4 <- function(x){return( list("ht"=5 + x , "assoc"=1))}
   g5 <- function(x){return(list("ht"=rexp(n = 1, rate=1/5)+1.5+(2*x), "assoc"=1))}
-  g6 <- function(x){return(list("ht"=sample(c(1.5, 6), size=1, prob = c(0.8-(0.2*x), 0.2 + 0.2*x)),
+  g6 <- function(x){return(list("ht"=sample(c(1.5, 6), size=1, prob = c(0.9-(0.25*x), 0.1 + 0.25*x)),
                                 "assoc"=1))}
 
   pk.ht.funcs = c(g1, g2, g3, g4, g5, g6)
@@ -39,7 +36,7 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence,
 run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
                           naive.bw=c(32, 64), informed.bw=c(32, 64)){
   R <- getobj(paste0(file.start, "_fret.RData"))
-  p <- dim(R$stats)[2]
+  p <- dim(R$dat)[1]
 
   #Naive window
   for(bw in naive.bw){
@@ -53,9 +50,9 @@ run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
                             pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
     save(w_test, file=paste0(file.start, "_", n, "_tests.RData"))
     if(log(bw, 2)==floor(log(bw, 2))){
-      w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
-                              waveQTL_loc=waveQTL_loc)
-      save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
+      #w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
+       #                       waveQTL_loc=waveQTL_loc)
+      #save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
     }
   }
   #Informed windows
@@ -74,9 +71,9 @@ run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
                           pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
     save(w_test, file=paste0(file.start, "_", n, "_tests.RData"))
     if(all(log(d, 2)==floor(log(d,2)))){
-      w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
-                            waveQTL_loc=waveQTL_loc)
-      save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
+      #w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
+      #                      waveQTL_loc=waveQTL_loc)
+      #save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
     }
   }
 }
@@ -110,58 +107,3 @@ run_deseq2 <- function(file.start, naive.bw=c(32, 64), informed.bw=c(32, 64)){
     save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
   }
 }
-
-
-
-run_win_tests2 <- function(file.start, p, waveQTL_loc, s0=c(0, 0, 0)){
-  R <- getobj(paste0(file.start, "_fret.RData"))
-
-  #Windows around peaks
-  k <- p/200
-
-  if(FALSE){
-  n <- "w64o"
-  w <- cbind( 69 + 200*(1:k -1), 132 + 200*(1:k -1))-14
-  w_test <- window_test(w, dat=R$dat,
-                            pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
-  save(w_test, file=paste0(file.start, "_", n, ".RData"))
-  w_waveqtl <-run_waveQTL(w, dat=R$dat, x=R$x, signal=R$signal$signal,
-                              waveQTL_loc=waveQTL_loc)
-  save(w_waveqtl, file=paste0(file.start, "_", n, "_wave.RData"))
-
-  n <- "w8b"
-  w <- cbind( 96 + 200*(1:k -1), 103 + 200*(1:k -1))
-  w_test <- window_test(w, dat=R$dat,
-                        pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
-  save(w_test, file=paste0(file.start, "_", n, ".RData"))
-  w_waveqtl <-run_waveQTL(w, dat=R$dat, x=R$x, signal=R$signal$signal,
-                          waveQTL_loc=waveQTL_loc)
-  save(w_waveqtl, file=paste0(file.start, "_", n, "_wave.RData"))
-  }
-
-  n <- "w32e"
-  w <- cbind(seq(1, p - (p%%32), by=32), seq(32, p, by=32))
-  w_test <- window_test(w, dat=R$dat,
-                        pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
-  save(w_test, file=paste0(file.start, "_", n, ".RData"))
-  w_waveqtl <-run_waveQTL(w, dat=R$dat, x=R$x, signal=R$signal$signal,
-                          waveQTL_loc=waveQTL_loc)
-  save(w_waveqtl, file=paste0(file.start, "_", n, "_wave.RData"))
-
-
-  n <- "w32b"
-  w <- cbind( 85 + 200*(1:k -1), 116 + 200*(1:k -1))
-  w_test <- window_test(w, dat=R$dat,
-                        pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
-  save(w_test, file=paste0(file.start, "_", n, ".RData"))
-  w_waveqtl <-run_waveQTL(w, dat=R$dat, x=R$x, signal=R$signal$signal,
-                          waveQTL_loc=waveQTL_loc)
-  save(w_waveqtl, file=paste0(file.start, "_", n, "_wave.RData"))
-
-
-}
-
-
-
-
-
