@@ -123,7 +123,8 @@ cfdr_sims3 <- function(x, pk.ht.funcs, type.sequence,
       }
     }
 
-    zmin <- as.numeric(quantile(Zs[,2:(n.perms + 1)], probs=c(0.95, 0.05)))
+    #zmin <- as.numeric(quantile(Zs[,-1], probs=c(0.95, 0.05)))
+    zmin <- as.numeric(quantile(abs(Zs[,-1]), probs=c(0.9)))
     z0 <- 0.3*zmin
     cl[[i]] <- list()
     for(k in 1:kk){
