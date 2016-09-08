@@ -43,8 +43,7 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
   K <- nrow(segment.bounds)
   stopifnot(all(segment.bounds[-K, 2] < segment.bounds[-1, 1]))
 
-  d <- segment.bounds[,2]-segment.bounds[,1] + 1
-
+  nbp <- segment.bounds[,2]-segment.bounds[,1] + 1
   max1.list <- list()
   perm.maxes.list <- list()
   for(i in 1:nrow(segment.bounds)){
@@ -55,10 +54,10 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
       mxlist(ys, z0, zmin)
     })
     pm <- sort(unlist(pm), decreasing = TRUE)
-    perm.maxes.list[[i]] <- lamtab(pm, zmin, d[i], N-1)
+    perm.maxes.list[[i]] <- lamtab(pm, zmin, nbp[i], N-1)
   }
 
-  R <- fret_choose_z2(max1.list, perm.maxes.list, nbp=d, zmin)
+  R <- fret_choose_z2(max1.list, perm.maxes.list, nbp, zmin, target.fdr = level)
   if(is.null(R$Robs)){
     clust <- list()
     for(j in 1:length(level)) clust[[j]] <- Intervals()
