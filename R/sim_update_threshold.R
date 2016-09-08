@@ -1,7 +1,7 @@
 
 #'@export
 sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
-                                 n.seg = c(), auto=c(50, 100, 150, 200),
+                                 n.seg = c(), auto=c(50, 100, 150, 200, 300, 400),
                                  vv.bandwidth=1){
   file.name <- paste0(prefix, "_", n, "_fret.RData")
   save.name <- paste0(prefix, "_", n, "_", ext)
