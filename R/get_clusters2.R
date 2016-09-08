@@ -25,16 +25,17 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
 
   stopifnot(length(z0)==length(zmin))
   stopifnot(length(z0) %in% c(1, 2))
-  if(length(z0)==2){
-    z0 <- sort(z0, decreasing = TRUE)
-    zmin <- sort(zmin, decreasing=TRUE)
-  }
 
   N <- ncol(smoothed.stats)
   p <- dim(smoothed.stats)[1]
   s <- length(zmin)
-  if(s==1) signed <- FALSE
-    else signed=TRUE
+  if(s==1){
+    signed <- FALSE
+  }else{
+    signed=TRUE
+    z0 <- sort(z0, decreasing = TRUE)
+    zmin <- sort(zmin, decreasing=TRUE)
+  }
 
   if(is.null(segment.bounds)) segment.bounds <- matrix(c(min(pos), max(pos)), ncol=2)
 
