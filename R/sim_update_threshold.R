@@ -18,12 +18,12 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
       sb[[i]] <- cbind(seq(1, p, by=p/n.seg[i]),  seq(p/n.seg[i], p, by=p/n.seg[i]))
     }
   }
-  dd <- dim(R$rates_at)
+  dd <- dim(R$rates)
   dd[2] <- K
-  dn <- dimnames(R$rates_at)
+  dn <- dimnames(R$rates)
   dn[[2]] <- c(as.character(n.seg), paste0("auto", auto))
-  stat.names <- dimnames(R$rates_at)[[1]]
-  level <- as.numeric(dimnames(R$rates_at)[[3]])
+  stat.names <- dimnames(R$rates)[[1]]
+  level <- as.numeric(dimnames(R$rates)[[3]])
   b <- length(level)
   new.rates.sgn <- new.rates.usgn <- array(0, dim=dd)
   dimnames(new.rates.sgn) <- dimnames(new.rates.usgn) <- dn
