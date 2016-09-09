@@ -76,15 +76,15 @@ get_clusters2 <- function(smoothed.stats, pos, zmin, z0=0.3*zmin,
       if(s==2){
         zsel[2, j, ] <- as.numeric(R$zneg[ix,])
         cpos <- name_clusters_merged(x=smoothed.stats[,1],
-                                     z=rep(as.numeric(zsel[1, j,-c(1,2)]), d),
+                                     z=rep(as.numeric(zsel[1, j,-c(1,2)]), nbp),
                                      z0=z0[1],sgn=TRUE)
         cneg <- name_clusters_merged(x=smoothed.stats[,1],
-                                     z=rep(as.numeric(zsel[2, j,-c(1,2)]), d),
+                                     z=rep(as.numeric(zsel[2, j,-c(1,2)]), nbp),
                                      z0=z0[2],sgn=TRUE)
         clust[[j]] <- interval_union(cpos, cneg)
       }else{
         clust[[j]] <- name_clusters_merged(x=smoothed.stats[,1],
-                                           z=rep(as.numeric(zsel[1, j,-c(1,2)]), d),
+                                           z=rep(as.numeric(zsel[1, j,-c(1,2)]), nbp),
                                            z0=z0)
       }
     }else{
