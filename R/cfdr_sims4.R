@@ -14,7 +14,7 @@
 cfdr_sims4 <- function(x, pk.ht.funcs, type.sequence,
                        seed=NULL, n.perms=500,
                        n.seg=c(), auto.min.length = c(),
-                       level=c(0.02, 0.05, 0.1, 0.2),
+                       level=c(0.02, 0.05, 0.1, 0.2), peak.base=20, null.factor=10,
                        save.data=FALSE, file.name=NULL, data.only=FALSE,
                        random.peak.loc = FALSE, min.peak.sep=2, s0=c(0, 0, 0),
                        stat.funcs = c(qpois_stats_binary, huber_stats, t_stats),
@@ -37,7 +37,7 @@ cfdr_sims4 <- function(x, pk.ht.funcs, type.sequence,
   stopifnot(all(sapply(stat.funcs, FUN=class) == "function"))
   stopifnot(length(stat.funcs)==length(stat.names))
   r <- length(type.sequence)
-  p <- 200 * length(type.sequence)
+  p <- null.factor*peak.base * length(type.sequence)
   b <- length(level)
   kk <- 1 + length(n.seg) + length(auto.min.length)
 
@@ -65,7 +65,7 @@ cfdr_sims4 <- function(x, pk.ht.funcs, type.sequence,
   #Generage Data
   if(random.peak.loc){
     peak.starts <- sort(sample(1:p, size = length(type.sequence), replace=FALSE))
-    sep <- 20 + min.peak.sep
+    sep <- peak.base + min.peak.sep
     while(!all(diff(c(0, peak.starts, p)) >= sep )){
       ix <- min(min(which(diff(c(0, peak.starts, p)) < sep )), r)
       peak.starts[ix] <- sample((1:p)[-peak.starts], size=1)
@@ -77,12 +77,14 @@ cfdr_sims4 <- function(x, pk.ht.funcs, type.sequence,
   }
   P <- sapply(x, FUN=function(xx){
     peak.hts = sapply(type.sequence, FUN=function(t){pk.ht.funcs[[t]](xx)$ht})
-    yy <- cfdrSims:::gen_profile2(peak.starts, peak.hts, total.length = p)
+    yy <- cfdrSims:::gen_profile2(peak.starts, peak.hts, total.length = p,
+                                  peak.base=peak.base, mesa.width=peak.base/3,
+                                  bw=peak.base/4, bg.ht=1.5)
     return(yy)
   })
   D <- apply(P, MARGIN=2, FUN=function(m){rpois(n=nrow(P), lambda=m)})
   #Build signal object
-  S <- get_signal3(pk.ht.funcs, type.sequence, peak.starts)
+  S <- get_signal3(pk.ht.funcs, type.sequence, peak.starts, peak.base=peak.base)
   if(data.only){
     ret=list("dat"=D, "means"=P, "signa"=S, "x"=x)
     save(ret, file=file.name)
@@ -103,6 +105,7 @@ cfdr_sims4 <- function(x, pk.ht.funcs, type.sequence,
 
   #mtabs will be  a list of length 3- one for each type of statistics
   mtabs <- list()
+  seg.bounds <- list()
   for(i in 1:length(stat.names)){
     cat(stat.names[i], "..")
     Z <- apply(perms, MARGIN=2, FUN=function(l){
@@ -111,7 +114,7 @@ cfdr_sims4 <- function(x, pk.ht.funcs, type.sequence,
     if(save.data) stats[i, , ] <- Z
     if(!is.null(file.name)) save(D, stats, file=temp.name)
     Zs <- apply(Z, MARGIN=2, FUN=function(y){
-      ksmooth(x=1:p, y=y, x.points=1:p, bandwidth=20)$y
+      ksmooth(x=1:p, y=y, x.points=1:p, bandwidth=peak.base)$y
     })
 
     #zmin <- as.numeric(quantile(Zs[,-1], probs=c(0.95, 0.05)))
@@ -146,10 +149,11 @@ cfdr_sims4 <- function(x, pk.ht.funcs, type.sequence,
       }
     }
     cat("\n")
+    seg.bounds[[i]] <- sb
   }
 
   if(!save.data) D <- NULL
-  R <- list("rates"=rates,
+  R <- list("rates"=rates, "segment.bounds"=seg.bounds,
             "stat.names"=stat.names, "mtabs"=mtabs, "signal"=S, "means"=P,
             "type.sequence"=type.sequence, "x"=x, "pk.pk.ht.funcs"=pk.ht.funcs,
             "dat"=D, "stats"=stats, "seed"=seed)

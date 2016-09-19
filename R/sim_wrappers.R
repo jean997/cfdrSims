@@ -2,8 +2,8 @@
 
 
 #'@export
-run_bin_aoas <- function(seed, prefix, n, type.sequence,
-                         n.seg=c(2, 4), auto.min.length = c(50, 100, 200),
+run_bin_aoas <- function(seed, prefix, n, type.sequence, peak.base=20,
+                         n.seg=c(), auto.min.length = c(2, 5, 10)*peak.base,
                          sample.size=c(20, 20), random.peak.loc=TRUE,
                         n.perms=500, waveQTL_loc="~/.local/bin/WaveQTL"){
   file.start <- paste0(prefix, "_", n)
@@ -16,7 +16,7 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence,
 
   #Associated functions
   g4 <- function(x){return( list("ht"=5 + x , "assoc"=1))}
-  g5 <- function(x){return(list("ht"=rexp(n = 1, rate=1/5)+1.5+(2*x), "assoc"=1))}
+  g5 <- function(x){return(list("ht"=rexp(n = 1, rate=1/5)+1.5+(3*x), "assoc"=1))}
   g6 <- function(x){return(list("ht"=sample(c(1.5, 6), size=1, prob = c(0.9-(0.25*x), 0.1 + 0.25*x)),
                                 "assoc"=1))}
 
@@ -24,17 +24,19 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence,
 
   R <- cfdr_sims4(x, pk.ht.funcs, type.sequence,
                   n.seg=n.seg, auto.min.length =auto.min.length,
-                  seed=seed, n.perms=n.perms, s0=rep(0.05, 3),
+                  seed=seed, n.perms=n.perms, s0=rep(0.05, 1),
                   level=c(0.02, 0.05, 0.1, 0.2),
-                  save.data=TRUE,
+                  save.data=TRUE, peak.base=peak.base,
                   file.name=paste0(file.start, "_fret.RData"),
-                  random.peak.loc=random.peak.loc, min.peak.sep=65)
-  run_win_tests(file.start, waveQTL_loc)
+                  random.peak.loc=random.peak.loc, min.peak.sep=peak.base*2,
+                  stat.funcs=c(t_stats), stat.names=c("T"))
+  run_win_tests(file.start, waveQTL_loc, naive.bw=c(0.5, 1, 2)*peak.base,
+                informed.bw=c(0.5, 1, 2)*peak.base)
 }
 
 #'@export
 run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
-                          naive.bw=c(32, 64), informed.bw=c(32, 64)){
+                          naive.bw=c(32, 64, 128), informed.bw=c(32, 64, 128)){
   R <- getobj(paste0(file.start, "_fret.RData"))
   p <- dim(R$dat)[1]
 
@@ -50,9 +52,9 @@ run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
                             pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
     save(w_test, file=paste0(file.start, "_", n, "_tests.RData"))
     if(log(bw, 2)==floor(log(bw, 2))){
-      #w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
-       #                       waveQTL_loc=waveQTL_loc)
-      #save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
+      w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
+                              waveQTL_loc=waveQTL_loc)
+      save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
     }
   }
   #Informed windows
@@ -71,9 +73,9 @@ run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
                           pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
     save(w_test, file=paste0(file.start, "_", n, "_tests.RData"))
     if(all(log(d, 2)==floor(log(d,2)))){
-      #w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
-      #                      waveQTL_loc=waveQTL_loc)
-      #save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
+      w_waveqtl <-run_waveQTL(wins, dat=R$dat, x=R$x, signal=R$signal$signal,
+                            waveQTL_loc=waveQTL_loc)
+      save(w_waveqtl, file=paste0(file.start, "_", n, "_waveqtl.RData"))
     }
   }
 }
