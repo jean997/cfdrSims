@@ -56,7 +56,9 @@ window_test <- function(windows, dat, pos, x, signal,
     rates[i, , ] <- t(sapply(sort(abs(stats[i,])), FUN=function(xx){
       tpr_nfp(signal, discoveries=w[abs(stats[i,]) >= xx, , drop=FALSE])
     }))
-    pvals[i,] <- sapply(stats[i,], FUN=cfdrSims:::get.pt, df=n-2)
+    pvals[i,] <- sapply(stats[i,], FUN=function(ss){
+      2*pt(abs(ss), df=n-2, lower.tail=FALSE)
+    })
     qvals[i,] <- p.adjust(pvals[i,], method="BH")
 
     rates_at[i, , ] <- t(sapply(level, FUN=function(ll){
