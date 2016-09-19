@@ -1,158 +1,82 @@
 
-#'Get Poisson stats
-#'@description Calculate Poisson regression statistic at each position
-#'@param dat Matrix of data (n x p)
-#'@param labs Labels (0s and 1s)
-#'@param perm_labs Permutation labels (n x n.perm)
+#'Calculate two sample Quasi-Poisson regression statistic (binary predictor)
+#'@description Calculate two sample Quasi-Poisson regression statsitic
+#'@param Y matrix of data (p x n)
+#'@param x trait value (0s and 1s)
 #'@param s0 Additional variance
-#'@return A matrix p x (1 + n.perm)
-#'The first column is for te original labels.
-#'The next columns are for the permutation labels
+#'@param zero.val Value to use if total in one group is zero
+#'@return 3 by p matrix
 #'@export
-get_stats_pois_binary <- function(dat, labs, perm_labs, s0=0){
-  z1 <- pois_regression(Y=dat, labs=labs, s0=s0)
-  if(is.null(perm_labs)) return(z1)
-  z <- apply(perm_labs, MARGIN=2, FUN=function(l){
-							 pois_regression(Y=dat,labs=l, s0=s0)
-        })
-  Z = cbind( z1, z)
-  return(Z)
-}
-
-pois_stats2 <- function(Y, labs, s0=0){
+qpois_stats_binary <- function(Y, x, s0, zero.val=1e-11){
   B <- apply(Y, MARGIN=1, FUN=function(y){
-    f <- glm(y~labs, family="quasipoisson")
-    b1 <- summary(f)$coefficients[2, 1]
-    s <- summary(f)$coefficients[2, 2] + s0
-    if(is.na(b1/s)) return(0)
-    return(b1/s)
+    c0 <- max(zero.val, sum(y[x==0]))
+    c1 <- max(zero.val, sum(y[x==1]))
+    n0 <- sum(x==0)
+    n1 <- sum(x==1)
+    b1 <- log(c1/n1)-log(c0/n0)
+    mu = rep(c0/n0, n0+n1)
+    mu[x==1] = c1/n1
+    phi = 1/(n0 + n1 - 2)* sum( (y-mu)^2/mu)
+    s = sqrt(phi)*sqrt(1/c0 + 1/c1)
+    return(c(b1, s, b1/(s+s0)))
   })
   return(B)
 }
 
-get_stats_pois_continuous <- function(dat, labs, perm_labs, s0=0){
-  z1 <- pois_stats2(Y=dat, labs=labs, s0=s0)
-  if(is.null(perm_labs)) return(z1)
-  z <- apply(perm_labs, MARGIN=2, FUN=function(l){
-    pois_stats2(Y=dat,labs=l, s0=s0)
-  })
-  Z = cbind( z1, z)
-  return(Z)
-}
 
-
-#'Get Huber stats
-#'@description Calculate Huber statistic at each position
-#'@param dat Matrix of data (n x p)
-#'@param labs Labels (0s and 1s)
-#'@param perm_labs Permutation labels (n x n.perm)
+#'Calculate two sample Poisson regression statsitic for any type of predictor
+#'@description Calculate Quasi-Poisson regression statsitic
+#'@param Y matrix of data (p x n)
+#'@param x trait value (0s and 1s)
 #'@param s0 Additional variance
-#'@param maxit Maximum iterations for rlm
-#'@return A matrix p x (1 + n.perm)
-#'The first column is for te original labels.
-#'The next columns are for the permutation labels
+#'@return 3 by p matrix
 #'@export
-get_stats_huber2<- function(dat, labs, perm_labs, s0=0, maxit=50){
-  z1 <- huber_stats2(Y=dat, labs=labs, s0=s0, maxit=maxit)
-  if(is.null(perm_labs)) return(z1)
-  z <- apply(perm_labs, MARGIN=2, FUN=function(l){
-    huber_stats2(dat, labs=l, s0=s0, maxit=maxit)
-  })
-  Z = cbind( z1, z)
-  return(Z)
-}
-
-#'Calculate Huber statsitic for simple linear regression usnig rlm
-#'@description Calculate two sample Huber
-#'@param Y matrix (p x n)
-#'@param labs 0s and 1s
-#'@param k Threshold for huber estimator in multiples of scale parameter.
-#'@param s0 Additional variance
-#'@param maxit Maixum iterations to pass to rlm.
-#'@return Vector of test statistics.
-#'@export
-huber_stats2 <- function(Y, labs, k=1.345, s0=0, maxit=20){
+qpois_stats_continuous <- function(Y, x, s0){
   B <- apply(Y, MARGIN=1, FUN=function(y){
-    f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
-    coef <- summary(f)$coefficients
-    if(nrow(coef)==1) return(0)
-    b1 <- coef[2, 1]
-    s <- coef[2, 2] + s0
-    if(is.na(b1/s)) return(0)
-    return(b1/s)
-  })
-  return(B)
-}
-
-#'Just like huber_stats2 but returns coefficient and sd estimates
-#'@description Calculate two sample Huber
-#'@param Y matrix (p x n)
-#'@param labs 0s and 1s
-#'@param k Threshold for huber estimator in multiples of scale parameter.
-#'@param s0 Additional variance
-#'@param maxit Maixum iterations to pass to rlm.
-#'@return 2 by p matrix. Top row is coefficient estimate. Bottom row is sd estimates.
-#'@export
-huber_helper <- function(Y, labs, k=1.345, maxit=20){
-  B <- apply(Y, MARGIN=1, FUN=function(y){
-    f <- rlm(y~labs, psi=psi.huber, k=k, scale.est="Huber", maxit=maxit)
+    f <- glm(y~x, family="quasipoisson")
     b1 <- summary(f)$coefficients[2, 1]
     s <- summary(f)$coefficients[2, 2]
-    return(c(b1, s))
+    return(c(b1, s, b1/(s+s0)))
   })
   return(B)
 }
 
 
-
-
-#'Get t-stats
-#'@description Calculate t-statistic at each position
-#'@param dat Matrix of data (n x p)
-#'@param labs Labels (0s and 1s)
-#'@param perm_labs Permutation labels (n x n.perm)
+#'Calculate two sample t-statsitic (binary predictor)
+#'@description Calculate two sample t-test statsitic
+#'@param Y matrix of data (p x n)
+#'@param x trait value (0s and 1s)
 #'@param s0 Additional variance
-#'@return A matrix p x (1 + n.perm)
-#'The first column is for te original labels.
-#'The next columns are for the permutation labels
+#'@return 3 by p matrix
 #'@export
-get_stats_ttest<- function(dat, labs, perm_labs, s0=0.1){
-  z1 <- t_stats(dat, labs=labs, s0=s0)
-  if(is.null(perm_labs)) return(z1)
-  z <- apply(perm_labs, MARGIN=2, FUN=function(l){
-    t_stats(dat, labs=l, s0=s0)
-  })
-  Z = cbind(z1, z)
-  return(Z)
-}
-
-t_stats <- function(dat, labs, s0){
-  n1 <- sum(labs==0); n2 <- sum(labs==1)
-  m1 <- apply(dat[, labs==0], MARGIN=1, FUN=sum)/n1
-  v1 <- apply(dat[, labs==0], MARGIN=1, FUN=var)
-  m2 <- apply(dat[, labs==1], MARGIN=1, FUN=sum)/n2
-  v2 <- apply(dat[, labs==1], MARGIN=1, FUN=var)
-  return((m1-m2)/(sqrt(v1/n1 + v2/n2) + s0))
-}
-
-get_stats_lm <- function(dat, labs, perm_labs, s0=0){
-  z1 <- lm_stats(Y=dat, labs=labs, s0=s0)
-  if(is.null(perm_labs)) return(z1)
-  z <- apply(perm_labs, MARGIN=2, FUN=function(l){
-    lm_stats(Y=dat,labs=l, s0=s0)
-  })
-  Z = cbind( z1, z)
-  return(Z)
-}
-
-
-lm_stats <- function(Y, labs, s0=0){
+t_stats <- function(Y, x, s0){
+  n0 <- sum(x==0); n1 <- sum(x==1)
   B <- apply(Y, MARGIN=1, FUN=function(y){
-    f <- lm(y~labs)
+    m0 <- sum(y[x==0])/n0
+    v0 <- var(y[x==0])
+    m1 <- sum(y[x==1])/n1
+    v1 <- var(y[x==1])
+    b1 <- m1 -m0
+    s <- sqrt(v0/n0 + v1/n1)
+    return(c(b1, s, b1/(s+s0)))
+  })
+  return(B)
+}
+
+
+#'Calculate two sample linear regression test statistics
+#'@description Calculate linear regression test statsitic
+#'@param Y matrix of data (p x n)
+#'@param x trait value (0s and 1s)
+#'@param s0 Additional variance
+#'@return 3 by p matrix
+#'@export
+lm_stats <- function(Y, x, s0){
+  B <- apply(Y, MARGIN=1, FUN=function(y){
+    f <- lm(y~x)
     b1 <- summary(f)$coefficients[2, 1]
-    s <- summary(f)$coefficients[2, 2] + s0
-    if(is.na(b1/s)) return(0)
-    return(b1/s)
+    s <- summary(f)$coefficients[2, 2]
+    return(c(b1, s, b1/(s+s0)))
   })
   return(B)
 }

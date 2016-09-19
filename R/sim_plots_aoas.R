@@ -1,8 +1,7 @@
 
 sim_plots_aoas <- function(){
   #tot.rates <- getobj("sim_results/bin1_total3.RData")
-  tot.rates <- getobj("sim_results/bin3_64.RData")
-  tot.rates <- getobj("sim_results/bin1_64.RData")
+
   qqs <- list()
   n <- length(tot.rates$nseg)*3
   for(i in (n + 1):length(tot.rates$names)) qqs[[i-n]] <- cfdrSims:::thin_qqplot(pvals=tot.rates$null.p[[i]]) +
@@ -24,33 +23,44 @@ sim_plots_aoas <- function(){
   #  theme(text=element_text(size=12))
   #ggsave(h2, file="~/Dropbox/Thesis/final_talk/img/deseq2_64e_qq.png", height=3, width=3, units="in")
 
-  p1 <- make_sim_plot(tot.rates, names=c("fretHuber2", "fretHuber1", "fretHuber20", "fretHuber60"),
+  prefix <- "sim_results/bin4_nt2_upd"
+  tot <- getobj(paste0(prefix, "_total.RData"))
+  p1 <- make_sim_plot(tot, names=c("fretHuber2", "fretHuber1", "fretHuber20", "fretHuber60"),
                       col=c("black", "violetRed", "chartreuse3", "blue"),
                       lty=rep(1, 4), shapes=rep(15, 4))
-  #ggsave(p1$tprplot, file="~/Dropbox/CFDR-Jean/for_AOAS/img/fret_compare2_tpp.png",height=4, width=4, units="in", dpi=300)
-  #ggsave(p1$fdpplot, file="~/Dropbox/Thesis/final_talk/img/fret_compare2_fdp.png",height=4, width=4, units="in", dpi=300)
+  h <- grid.arrange(p1$fdpplot, p1$tprplot, ncol=2)
+  ggsave(h, file=paste0(prefix, "_nseg.png"), height=4, width=8, units="in", dpi=300)
 
-  p2 <- make_sim_plot(tot.rates, names=c("fretHuber60", "fretPois60", "fretT60"),
+  #[1] "fretHuberauto50"  "fretHuberauto100" "fretHuberauto150"
+  #[4] "fretHuberauto200" "fretHuberauto300" "fretHuberauto400"
+  p1 <- make_sim_plot(tot, names=paste0("fretHuberauto", c(50, 100, 150, 200, 300, 400)),
+                      col=c("black", "violetRed", "chartreuse3", "blue", "purple", "darkorange2"),
+                      lty=c(1, 2, 1, 2, 1, 2), shapes=rep(15, 6))
+  h <- grid.arrange(p1$fdpplot, p1$tprplot, ncol=2)
+  ggsave(h, file=paste0(prefix, "_auto.png"), height=4, width=8, units="in", dpi=300)
+
+  p1 <- make_sim_plot(tot, names=c("fretHuberauto300", "fretPoisauto300", "fretTauto300"),
                       lty=c(1, 2, 3), col=rep("black", 3), shapes=c(15, 16, 17))
-  #ggsave(p2$tprplot, file="~/Dropbox/Thesis/final_talk/img/fret_compare_tpp.png",height=4, width=4, units="in", dpi=300)
-  #ggsave(p2$fdpplot, file="~/Dropbox/Thesis/final_talk/img/fret_compare_fdp.png",height=4, width=4, units="in", dpi=300)
+  h <- grid.arrange(p1$fdpplot, p1$tprplot, ncol=2)
+  ggsave(h, file=paste0(prefix, "_fret.png"), height=4, width=8, units="in", dpi=300)
 
-  l <- make_sim_legend_aoas()
+  p1 <- make_sim_plot(tot, names=c("fretHuberauto150", paste0(c("Pois", "Huber", "T"), "naive64")),
+                      col=c("black", "violetRed", "chartreuse3", "blue"),
+                      lty=c(1, 2, 1,3), shapes=15:18)
+  h <- grid.arrange(p1$fdpplot, p1$tprplot, ncol=2)
+  ggsave(h, file=paste0(prefix, "_fretauto150_naive64.png"), height=4, width=8, units="in", dpi=300)
+
+  p1 <- make_sim_plot(tot, names=c("fretHuberauto50", paste0(c("Pois", "Huber", "T"), "informed32")),
+                      col=c("black", "violetRed", "chartreuse3", "blue"),
+                      lty=c(1, 2, 1,3), shapes=15:18)
+  h <- grid.arrange(p1$fdpplot, p1$tprplot, ncol=2)
+  ggsave(h, file=paste0(prefix, "_fretauto50_informed32.png"), height=4, width=8, units="in", dpi=300)
+
+
+  #l <- make_sim_legend_aoas()
   #ggsave(l$plot, file="~/Dropbox/Thesis/final_talk/img/legend.png",
   #       height=4, width=3, units="in", dpi=300)
 
-  p64b <- make_sim_plot(tot.rates, names=l$info$informed,
-                        cols=l$info$cols,
-                        ltys=l$info$lty, shapes=l$info$shape)
-  #ggsave(p64b$fdpplot, file="~/Dropbox/Thesis/final_talk/img/w64b_fdp.png", height=4, width=4, units="in", dpi=300)
-  #ggsave(p64b$tprplot, file="~/Dropbox/Thesis/final_talk/img/w64b_tpp.png", height=4, width=4, units="in", dpi=300)
-
-
-  p64e <- make_sim_plot(tot.rates, names=l$info$naive,
-                        cols=l$info$cols,
-                        ltys=l$info$lty, shapes=l$info$shape)
-  #ggsave(p64e$fdpplot, file="~/Dropbox/Thesis/final_talk/img/w64e_fdp.png", height=4, width=4, units="in", dpi=300)
-  #ggsave(p64e$tprplot, file="~/Dropbox/Thesis/final_talk/img/w64e_tpp.png", height=4, width=4, units="in", dpi=300)
 
 
 }

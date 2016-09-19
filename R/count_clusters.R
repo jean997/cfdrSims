@@ -11,31 +11,15 @@
 #'z that are subsets of a single region at level z0 will be merged.
 #'@return Intervals object giving clusters
 #'@export
-name_clusters_merged <- function(x, z, z0, labs=FALSE, sgn=FALSE){
+name_clusters_merged <- function(x, z, z0, labs=FALSE){
 
   stopifnot(length(z)==1 | length(z)== length(x))
 
-  if(!sgn){
-    stopifnot(all(z > 0) & z0 > 0)
-    x <- abs(x)
-  }else if(z0 < 0 & all(z < 0)){
-    x[x > 0] <- 0
-    x <- abs(x)
-    z <- -1*z
-    z0 <- -1*z0
-  }else if(z0 > 0 & all(z > 0)){
-    x[x < 0] <- 0
-  }else{
-    stop("Error in name_clusters_merged.\n")
-  }
-  #Connected components at z0
-  q0 <-rle( x >= z0 )
-  p0 <- length(q0$lengths)
-  starts0 <- c(1, cumsum(q0$lengths)[-p0]+1)[q0$values]
-  stops0 <- (cumsum(q0$lengths))[q0$values]
-  q0I <- Intervals(cbind(starts0, stops0))
 
-  #if(!length(z)==1) cat("Warning: z is not constant.\n")
+  stopifnot(all(z > 0) & z0 > 0)
+  x <- abs(x)
+  #Connected components at z0
+  q0I <- Intervals(excursions(x, z0))
 
   q <-rle( x >= z )
   p <- length(q$lengths)
