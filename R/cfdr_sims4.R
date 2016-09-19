@@ -48,7 +48,7 @@ cfdr_sims4 <- function(x, pk.ht.funcs, type.sequence,
   if(length(n.seg)> 0){
     for(i in 1:length(n.seg)){
       stopifnot(p %% n.seg == 0)
-      sb[[i+1]] <- data.frame("chrom"=rep("chr1", n.seg),
+      sb[[i+1]] <- data.frame("chrom"=rep("chr1", n.seg[i]),
                               "start"=seq(1, p, by=p/n.seg[i]),
                               "stop"=seq(p/n.seg[i], p, by=p/n.seg[i]))
     }
