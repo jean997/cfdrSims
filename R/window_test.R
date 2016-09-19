@@ -51,7 +51,7 @@ window_test <- function(windows, dat, pos, x, signal,
   dimnames(rates_at)= list(stat.names, level, c("tpr", "nfp", "ntp", "fdp"))
   for(i in 1:length(stat.names)){
 
-    stats[i,] <- stat.funcs[i](window.dat[,-1], x, s0=s0[i])[3,]
+    stats[i,] <- stat.funcs[[i]](window.dat[,-1], x, s0=s0[i])[3,]
 
     rates[i, , ] <- t(sapply(sort(abs(stats[i,])), FUN=function(xx){
       tpr_nfp(signal, discoveries=w[abs(stats[i,]) >= xx, , drop=FALSE])
