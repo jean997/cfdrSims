@@ -10,17 +10,15 @@
 #'@param level
 #' @return A list
 #'@export
-window_test <- function(windows, dat, pos, x, signal, huber.maxit=50,
-                        s0=c(0, 0, 0), level=c(0.02, 0.05, 0.1, 0.2)){
+window_test <- function(windows, dat, pos, x, signal,
+                        level=c(0.02, 0.05, 0.1, 0.2),
+                        s0=c(0, 0, 0),
+                        stat.funcs = c(qpois_stats_binary, huber_stats, t_stats),
+                        stat.names=c("Poisson", "Huber", "T")){
 
-  stat.names = c("Poisson", "Huber", "t-test")
-  if(all(x %in% c(0, 1))){
-    pois_func = get_stats_pois_binary
-    lm_func <- get_stats_ttest
-  }else{
-    pois_func = get_stats_pois_continuous
-    lm_func=get_stats_lm
-  }
+  stopifnot(length(s0)==length(stat.funcs))
+  stopifnot(all(sapply(stat.funcs, FUN=class) == "function"))
+  stopifnot(length(stat.funcs)==length(stat.names))
 
   n <- ncol(dat)
   p <- nrow(windows)
@@ -52,13 +50,9 @@ window_test <- function(windows, dat, pos, x, signal, huber.maxit=50,
   dimnames(rates) = list(stat.names, 1:p, c("tpr", "nfp", "ntp", "fdp"))
   dimnames(rates_at)= list(stat.names, level, c("tpr", "nfp", "ntp", "fdp"))
   for(i in 1:length(stat.names)){
-    if(stat.names[i]=="Poisson"){
-      stats[i,] <- pois_func(window.dat[,-1], x, NULL, s0=s0[i])
-    }else if(stat.names[i]=="Huber"){
-      stats[i,]<- huber_stats2(window.dat[,-1], x, s0=s0[i], maxit=huber.maxit)
-    }else if(stat.names[i]=="t-test"){
-      stats[i,] <- lm_func(window.dat[,-1], x, NULL, s0=s0[i])
-    }
+
+    stats[i,] <- stat.func[i](window.dat[,-1], x, s0=s0[i])[3,]
+
     rates[i, , ] <- t(sapply(sort(abs(stats[i,])), FUN=function(xx){
       tpr_nfp(signal, discoveries=w[abs(stats[i,]) >= xx, , drop=FALSE])
     }))
