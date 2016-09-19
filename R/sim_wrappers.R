@@ -24,12 +24,11 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence, peak.base=20,
 
   R <- cfdr_sims4(x, pk.ht.funcs, type.sequence,
                   n.seg=n.seg, auto.min.length =auto.min.length,
-                  seed=seed, n.perms=n.perms, s0=rep(0.05, 1),
+                  seed=seed, n.perms=n.perms, s0=rep(0.05, 3),
                   level=c(0.02, 0.05, 0.1, 0.2),
                   save.data=TRUE, peak.base=peak.base,
                   file.name=paste0(file.start, "_fret.RData"),
-                  random.peak.loc=random.peak.loc, min.peak.sep=peak.base*2,
-                  stat.funcs=c(t_stats), stat.names=c("T"))
+                  random.peak.loc=random.peak.loc, min.peak.sep=peak.base*2)
   run_win_tests(file.start, waveQTL_loc, naive.bw=c(0.5, 1, 2)*peak.base,
                 informed.bw=c(0.5, 1, 2)*peak.base)
 }
