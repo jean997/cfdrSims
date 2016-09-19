@@ -111,13 +111,18 @@ thin_qqplot <- function(pvals, thin=c(0.25, 100), shade=TRUE, truncate=Inf){
   pvals <- sort(pvals)
   v = qunif(p=seq(0, 1, length.out = n+1)[2:(n+1)])
   v = -log10(v)
-  q = quantile(v, probs=thin[1])
-  q_idx = min(which(v <= q))
-  thin_idx = unique(ceiling(seq(n-q_idx, n, length.out=thin[2])))
-  thin_idx = c(1:(n-q_idx))
-  v=v[thin_idx]
-  pvals = -log10(pvals[thin_idx])
 
+  if(!is.null(thin)){
+    q = quantile(v, probs=thin[1])
+    q_idx = min(which(v <= q))
+    thin_idx = unique(ceiling(seq(n-q_idx, n, length.out=thin[2])))
+    thin_idx = c(1:(n-q_idx))
+    v=v[thin_idx]
+    pvals = -log10(pvals[thin_idx])
+  }else{
+    thin_idx <- 1:n
+    pvals <- -log10(pvals)
+  }
   #Shading
   if(shade){
     c975 <- sapply(thin_idx, FUN=function(i){
