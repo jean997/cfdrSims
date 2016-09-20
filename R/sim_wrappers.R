@@ -1,6 +1,5 @@
 #'@import dplyr
 
-
 #'@export
 run_bin_aoas <- function(seed, prefix, n, type.sequence, peak.base=20,
                          n.seg=c(), auto.min.length = c(2, 5, 10)*peak.base,

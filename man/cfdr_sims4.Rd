@@ -6,9 +6,9 @@
 \usage{
 cfdr_sims4(x, pk.ht.funcs, type.sequence, seed = NULL, n.perms = 500,
   n.seg = c(), auto.min.length = c(), level = c(0.02, 0.05, 0.1, 0.2),
-  save.data = FALSE, file.name = NULL, data.only = FALSE,
-  random.peak.loc = FALSE, min.peak.sep = 2, s0 = c(0, 0, 0),
-  stat.funcs = c(qpois_stats_binary, huber_stats, t_stats),
+  peak.base = 20, null.factor = 10, save.data = FALSE, file.name = NULL,
+  data.only = FALSE, random.peak.loc = FALSE, min.peak.sep = 2,
+  s0 = c(0, 0, 0), stat.funcs = c(qpois_stats_binary, huber_stats, t_stats),
   stat.names = c("Poisson", "Huber", "T"))
 }
 \arguments{

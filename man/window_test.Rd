@@ -4,8 +4,9 @@
 \alias{window_test}
 \title{Test simulations in windows}
 \usage{
-window_test(windows, dat, pos, x, signal, huber.maxit = 50, s0 = c(0, 0, 0),
-  level = c(0.02, 0.05, 0.1, 0.2))
+window_test(windows, dat, pos, x, signal, level = c(0.02, 0.05, 0.1, 0.2),
+  s0 = c(0, 0, 0), stat.funcs = c(qpois_stats_binary, huber_stats, t_stats),
+  stat.names = c("Poisson", "Huber", "T"))
 }
 \arguments{
 \item{windows}{q by 2 matrix giving region boundaries}
@@ -18,9 +19,9 @@ window_test(windows, dat, pos, x, signal, huber.maxit = 50, s0 = c(0, 0, 0),
 
 \item{signal}{}
 
-\item{s0}{}
-
 \item{level}{}
+
+\item{s0}{}
 }
 \value{
 A list

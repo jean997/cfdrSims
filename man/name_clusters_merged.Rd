@@ -4,7 +4,7 @@
 \alias{name_clusters_merged}
 \title{Return clusters at a given level}
 \usage{
-name_clusters_merged(x, z, z0, labs = FALSE, sgn = FALSE)
+name_clusters_merged(x, z, z0, labs = FALSE)
 }
 \arguments{
 \item{x}{Data (already smoothed)}
