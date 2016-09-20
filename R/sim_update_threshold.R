@@ -1,12 +1,11 @@
 
 #'@export
-sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
-                                 n.seg = c(), auto=c(50, 100, 150, 200, 300, 400),
-                                 vv.bandwidth=1){
+sim_update_threshold <- function(prefix, n, ext="upd_rates", bandwidth=64,
+                                 n.seg = c(), auto=c(50, 100, 150, 200, 300, 400)){
   file.name <- paste0(prefix, "_", n, "_fret.RData")
-  save.name <- paste0(prefix, "_", n, "_", ext)
+  save.name <- paste0(prefix, "_", n, "_", ext, ".RData")
   R <- getobj(file.name)
-  p <- dim(R$stats)[2]
+  p <- dim(R$dat)[1]
   n.perms <- dim(R$stats)[3]-1
 
   #segment.bounds
@@ -25,53 +24,44 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates.RData",
   stat.names <- dimnames(R$rates)[[1]]
   level <- as.numeric(dimnames(R$rates)[[3]])
   b <- length(level)
-  new.rates.sgn <- new.rates.usgn <- array(0, dim=dd)
-  dimnames(new.rates.sgn) <- dimnames(new.rates.usgn) <- dn
+  new.rates <- new.rates <- array(0, dim=dd)
+  dimnames(new.rates) <- dimnames(new.rates) <- dn
 
-  cl_unsigned <- list()
-  cl_signed <- list()
+
   for(i in 1:length(stat.names)){
     cat(stat.names[i], " ")
     Z <- R$stats[i, , ]
     Zs <- apply(Z, MARGIN=2, FUN=function(y){
-      ksmooth(x=1:p, y=y, x.points=1:p, bandwidth=20)$y
+      ksmooth(x=1:p, y=y, x.points=1:p, bandwidth=64)$y
     })
-
-    zmin_sgn <- as.numeric(quantile(Zs[,-1], probs=c(0.95, 0.05)))
-    z0_sgn <- 0.3*zmin_sgn
-
-    zmin_usgn <- as.numeric(quantile(abs(Zs[,-1]), probs=0.9))
-    z0_usgn <- 0.3*zmin_usgn
 
     #Automatically determined intervals
     vv <- apply(Zs[,-1], MARGIN=1, FUN=var)
     for(k in 1:length(auto)){
-      sb[[k + length(n.seg)]] <- find_segments(vv=vv, pos=1:p, min.length = auto[k],
-                                               bandwidth=vv.bandwidth, q=0.05)
+      ss <- find_segments(vv=vv, pos=1:p, min.length = auto[k],
+                                               bandwidth=1, q=0.05)
+      sb[[k + length(n.seg)]] <- data.frame("chrom"=rep("chr1", nrow(ss)),
+                                            "start"=ss[,1], "stop"=ss[,2])
     }
-    cl_signed[[i]] <- cl_unsigned[[i]] <- list()
     cat(" nseg: ")
+    mtab <- R$mtabs[[i]]
     for(k in 1:K){
       cat(nrow(sb[[k]]), " ")
-      cl_signed[[i]][[k]] <- get_clusters2(Zs, 1:p, zmin_sgn, z0_sgn,
-                                    level=level, segment.bounds=sb[[k]])
-      cl_unsigned[[i]][[k]] <- get_clusters2(Zs, 1:p, zmin_usgn, z0_usgn,
-                                           level=level, segment.bounds=sb[[k]])
+      fstep2 <- fret_step2(mtab$max1, mtab$max.perm, mtab$n.perm, mtab$zmin, sb[[k]])
+      fstep3 <- fret_step3(fstep2, level)
       for(j in 1:b){
-        if(nrow(cl_signed[[i]][[k]]$clust[[j]])> 0){
-          new.rates.sgn[i, k, j, ]<- tpr_nfp(Intervals(R$signal$signal),
-                                                discoveries=cl_signed[[i]][[k]]$clust[[j]])
-        }
-        if(nrow(cl_unsigned[[i]][[k]]$clust[[j]])> 0){
-          new.rates.usgn[i, k, j, ]<- tpr_nfp(Intervals(R$signal$signal),
-                                     discoveries=cl_unsigned[[i]][[k]]$clust[[j]])
+        if(level[j] %in% fstep3$Robs$fdr){
+          ix <- which(fstep3$Robs$fdr == level[j])
+          z <- as.numeric(rep(fstep3$z[1, ix, -c(1, 2)], fstep2$nbp))
+          discoveries <- name_clusters_merged(x=Zs[,1], z=z, z0 = 0.3*mtab$zmin)
+          new.rates[i, k, j, ]<- tpr_nfp(Intervals(R$signal$signal),
+                                     discoveries=discoveries)
         }
       }
     }
     cat("\n")
   }
-  ret <- list("cl_signed"=cl_signed, "cl_unsigned"=cl_unsigned,
-              "new.rates.usgn"=new.rates.usgn, "new.rates.sgn"=new.rates.sgn )
-  save(ret, file=save.name)
+  #ret <- list("new.rates"=new.rates)
+  save(new.rates, file=save.name)
   return(NULL)
 }
