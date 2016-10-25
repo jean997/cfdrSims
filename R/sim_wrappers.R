@@ -47,8 +47,7 @@ informed_bins <- function(peaks, bw){
   needed <- bw - d
   left <- pmin(peaks[,1]-1,  sapply(needed/2, FUN=floor))
   right <- needed-left
-  wins[,1] <- peaks[,1]-left
-  wins[,2] <- peaks[,2] + right
+  wins <- cbind( peaks[,1]-left, peaks[,2] + right)
   wins <- as.matrix(interval_union(Intervals(wins)))
   return(wins)
 }
