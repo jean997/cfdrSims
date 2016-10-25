@@ -5,9 +5,9 @@
 #'@param pos Positions
 #'@param dat p x n matrix of data
 #'@param x treatment status of each sample (length n)
-#'@param signal
-#'@param s0
-#'@param level
+#'@param signal Matrix of signal regions
+#'@param s0 Variance inflation constant
+#'@param level Vector of FDR thresholds
 #' @return A list
 #'@export
 window_test <- function(windows, dat, pos, x, signal,
