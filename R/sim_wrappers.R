@@ -32,6 +32,27 @@ run_bin_aoas <- function(seed, prefix, n, type.sequence, peak.base=20,
                 informed.bw=c(0.5, 1, 2)*peak.base)
 }
 
+naive_bins <- function(p, bw){
+  k <- floor(p/bw)
+  strt <- floor((p - (k*bw))/2) + 1
+  strts <- ((0:(k-1))*bw) + strt
+  stps <- strts + bw -1
+  wins <- cbind(strts, stps)
+  return(wins)
+}
+
+informed_bins <- function(peaks, bw){
+
+  d <- peaks[,2]-peaks[,1]+1
+  needed <- bw - d
+  left <- pmin(peaks[,1]-1,  sapply(needed/2, FUN=floor))
+  right <- needed-left
+  wins[,1] <- peaks[,1]-left
+  wins[,2] <- peaks[,2] + right
+  wins <- as.matrix(interval_union(Intervals(wins)))
+  return(wins)
+}
+
 #'@export
 run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
                           naive.bw=c(32, 64, 128), informed.bw=c(32, 64, 128)){
@@ -41,11 +62,7 @@ run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
   #Naive window
   for(bw in naive.bw){
     n <- paste0("naive", bw)
-    k <- floor(p/bw)
-    strt <- floor((p - (k*bw))/2) + 1
-    strts <- ((0:(k-1))*bw) + strt
-    stps <- strts + bw -1
-    wins <- cbind(strts, stps)
+    wins <- naive_bins(p, bw)
     w_test <- window_test(wins, dat=R$dat,
                             pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
     save(w_test, file=paste0(file.start, "_", n, "_tests.RData"))
@@ -58,14 +75,7 @@ run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
   #Informed windows
   for(bw in informed.bw){
     n <- paste0("informed", bw)
-    wins <- R$signal$peaks
-    d <- wins[,2]-wins[,1]+1
-    needed <- bw - d
-    left <- pmin(wins[,1]-1,  sapply(needed/2, FUN=floor))
-    right <- needed-left
-    wins[,1] <- wins[,1]-left
-    wins[,2] <- wins[,2] + right
-    wins <- as.matrix(interval_union(Intervals(wins)))
+    wins <- informed_bins(R$signal$peaks, bw)
     d <- wins[,2]-wins[,1]+1
     w_test <- window_test(wins, dat=R$dat,
                           pos=1:p, x=R$x, signal=R$signal$signal, s0=s0)
@@ -82,28 +92,15 @@ run_win_tests <- function(file.start, waveQTL_loc, s0=c(0, 0, 0),
 run_deseq2 <- function(file.start, naive.bw=c(32, 64), informed.bw=c(32, 64)){
   R <- getobj(paste0(file.start, "_fret.RData"))
   p <- dim(R$dat)[1]
-
-
   for(bw in naive.bw){
     n <- paste0("naive", bw)
-    k <- floor(p/bw)
-    strt <- floor((p - (k*bw))/2) + 1
-    strts <- ((0:(k-1))*bw) + strt
-    stps <- strts + bw -1
-    wins <- cbind(strts, stps)
+    wins <- naive_bins(p, bw)
     w_deseq2 <-deseq2_test(wins, R$dat, 1:p, R$x, R$signal$signal)
     save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
   }
   for(bw in informed.bw){
     n <- paste0("informed", bw)
-    wins <- R$signal$peaks
-    d <- wins[,2]-wins[,1]+1
-    needed <- bw - d
-    left <- pmin(wins[,1]-1,  sapply(needed/2, FUN=floor))
-    right <- needed-left
-    wins[,1] <- wins[,1]-left
-    wins[,2] <- wins[,2] + right
-    wins <- as.matrix(interval_union(Intervals(wins)))
+    wins <- informed_bins(R$signal$peaks, bw)
     w_deseq2 <-deseq2_test(wins, R$dat, 1:p, R$x, R$signal$signal)
     save(w_deseq2, file=paste0(file.start, "_", n, "_deseq2.RData"))
   }
