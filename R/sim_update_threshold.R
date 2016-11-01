@@ -38,8 +38,7 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates", bandwidth=64,
     #Automatically determined intervals
     vv <- apply(Zs[,-1], MARGIN=1, FUN=var)
     for(k in 1:length(auto)){
-      ss <- find_segments(vv=vv, pos=1:p, min.length = auto[k],
-                                               bandwidth=1, q=0.05)
+      ss <- find_segments3(vv=vv, pos=1:p, min.length = auto[k],q=0.05)
       sb[[k + length(n.seg)]] <- data.frame("chrom"=rep("chr1", nrow(ss)),
                                             "start"=ss[,1], "stop"=ss[,2])
     }
