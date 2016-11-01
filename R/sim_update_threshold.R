@@ -46,8 +46,8 @@ sim_update_threshold <- function(prefix, n, ext="upd_rates", bandwidth=64,
     mtab <- R$mtabs[[i]]
     for(k in 1:K){
       cat(nrow(sb[[k]]), " ")
-      fstep2 <- fret_step2(mtab$max1, mtab$max.perm, mtab$n.perm, mtab$zmin, sb[[k]])
-      fstep3 <- fret_step3(fstep2, level)
+      fstep2 <- fret_rates(mtab$max1, mtab$max.perm, mtab$n.perm, mtab$zmin, sb[[k]])
+      fstep3 <- fret_thresholds(fstep2, level)
       for(j in 1:b){
         if(level[j] %in% fstep3$Robs$fdr){
           ix <- which(fstep3$Robs$fdr == level[j])
