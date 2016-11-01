@@ -42,6 +42,79 @@ sim_plots_aoas <- function(){
   }
   hh <- grid.arrange(h[[1]], h[[2]], h[[3]], h[[4]], h[[5]], h[[6]], ncol=2)
   ggsave(hh, file="~/Dropbox/cfdr-jean/for_AOAS/img/sim_qqplots.png", height=12, width=8, units="in", dpi=300)
+
+  #width 32 bins
+  p1 <- make_sim_plot(tot, names=c("fretHuberauto3200",
+                                   "fretPoisauto3200",
+                                   "DESeq2informed32",
+                                   "Waveinformed32",
+                                   "Huberinformed32"),
+                      col=c("black", "black",
+                            "violetRed", "chartreuse3", "blue"),
+                      lty=c(1, 2, 3, 4, 2), shapes=c(16, 15, 17, 18, 3))
+
+  p2 <- make_sim_plot(tot, names=c("fretHuberauto3200",
+                                   "fretPoisauto3200",
+                                   "DESeq2naive32",
+                                   "Wavenaive32",
+                                   "Hubernaive32"),
+                      col=c("black", "black","violetRed", "chartreuse3", "blue"),
+                      lty=c(1, 2, 3, 4, 2), shapes=c(16, 15, 17, 18, 3))
+
+  h <- grid.arrange(p1$fdpplot + ggtitle("FDR; Informed Bins"), p1$tprplot+ggtitle("Power; Informed Bins"),
+                    p2$fdpplot + ggtitle("FDR; Naive Bins"), p2$tprplot+ggtitle("Power; Naive Bins"))
+  ggsave(h, file="~/Dropbox/cfdr-jean/for_AOAS/img/bin5_32.png", height=7, width=8, units="in", dpi=300)
+
+  h <- list(); ct <- 1
+  nn <- c("DESeq2informed32", "DESeq2naive32", "Huberinformed32", "Hubernaive32",
+          "Waveinformed32", "Wavenaive32")
+  for(i in 1:length(nn)){
+    ix <- which(tot$names==nn[i])
+    null.p <- tot$stats[[ix]]$pval[tot$stats[[ix]]$signal==0]
+    h[[ct]] <- thin_qqplot(null.p)  + ggtitle(ttls[i])
+    ct <- ct + 1
+  }
+  hh <- grid.arrange(h[[1]], h[[2]], h[[3]], h[[4]], h[[5]], h[[6]], ncol=2)
+  ggsave(hh, file="~/Dropbox/cfdr-jean/for_AOAS/img/sim_qqplots_32.png", height=12, width=8, units="in", dpi=300)
+
+
+
+  #Width 128 bins
+  p1 <- make_sim_plot(tot, names=c("fretHuberauto3200",
+                                   "fretPoisauto3200",
+                                   "DESeq2informed128",
+                                   "Waveinformed128",
+                                   "Huberinformed128"),
+                      col=c("black", "black",
+                            "violetRed", "chartreuse3", "blue"),
+                      lty=c(1, 2, 3, 4, 2), shapes=c(16, 15, 17, 18, 3))
+
+  p2 <- make_sim_plot(tot, names=c("fretHuberauto3200",
+                                   "fretPoisauto3200",
+                                   "DESeq2naive128",
+                                   "Wavenaive128",
+                                   "Hubernaive128"),
+                      col=c("black", "black","violetRed", "chartreuse3", "blue"),
+                      lty=c(1, 2, 3, 4, 2), shapes=c(16, 15, 17, 18, 3))
+
+  h <- grid.arrange(p1$fdpplot + ggtitle("FDR; Informed Bins"), p1$tprplot+ggtitle("Power; Informed Bins"),
+                    p2$fdpplot + ggtitle("FDR; Naive Bins"), p2$tprplot+ggtitle("Power; Naive Bins"))
+  ggsave(h, file="~/Dropbox/cfdr-jean/for_AOAS/img/bin5_128.png", height=7, width=8, units="in", dpi=300)
+
+  h <- list(); ct <- 1
+  nn <- c("DESeq2informed128", "DESeq2naive128", "Huberinformed128", "Hubernaive128",
+          "Waveinformed128", "Wavenaive128")
+  for(i in 1:length(nn)){
+    ix <- which(tot$names==nn[i])
+    null.p <- tot$stats[[ix]]$pval[tot$stats[[ix]]$signal==0]
+    h[[ct]] <- thin_qqplot(null.p)  + ggtitle(ttls[i])
+    ct <- ct + 1
+  }
+  hh <- grid.arrange(h[[1]], h[[2]], h[[3]], h[[4]], h[[5]], h[[6]], ncol=2)
+  ggsave(hh, file="~/Dropbox/cfdr-jean/for_AOAS/img/sim_qqplots_128.png", height=12, width=8, units="in", dpi=300)
+
+
+
 }
 
 
